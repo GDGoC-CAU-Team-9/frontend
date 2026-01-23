@@ -3,12 +3,10 @@ import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   // Brand Colors
-  static const Color primaryColor = Color(0xFF009688); // Teal for Safety/Food
-  static const Color secondaryColor = Color(
-    0xFFFFA000,
-  ); // Amber for Warning/Attention
+  static const Color primaryColor = Color(0xFF2D6A4F); // Deep Forest Green
+  static const Color secondaryColor = Color(0xFFE9C46A); // Muted Gold
   static const Color errorColor = Color(0xFFD32F2F);
-  static const Color backgroundColor = Color(0xFFF5F5F5);
+  static const Color backgroundColor = Color(0xFFF8F9FA); // Warmer White
   static const Color surfaceColor = Colors.white;
 
   static ThemeData get lightTheme {

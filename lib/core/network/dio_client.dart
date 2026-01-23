@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dio_cookie_manager/dio_cookie_manager.dart';
+import 'package:cookie_jar/cookie_jar.dart';
 
 final dioProvider = Provider<Dio>((ref) {
   final dio = Dio(
@@ -16,6 +18,10 @@ final dioProvider = Provider<Dio>((ref) {
       },
     ),
   );
+
+  // Cookie Manager
+  final cookieJar = CookieJar();
+  dio.interceptors.add(CookieManager(cookieJar));
 
   // Add interceptors here if needed (e.g., for logging or auth tokens)
   dio.interceptors.add(LogInterceptor(responseBody: true, requestBody: true));

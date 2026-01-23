@@ -36,9 +36,9 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
       if (mounted && !ref.read(authProvider).hasError) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Sign up successful! Please login.')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('회원가입 성공! 로그인해주세요.')));
           context.pop(); // Go back to login
         }
       }
@@ -52,7 +52,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
         error: (error, stack) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('Sign Up Failed: $error')));
+          ).showSnackBar(SnackBar(content: Text('회원가입 실패: $error')));
         },
       );
     });
@@ -61,7 +61,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     final isLoading = authState is AsyncLoading;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Sign Up')),
+      appBar: AppBar(title: const Text('회원가입')),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: SingleChildScrollView(
@@ -73,31 +73,28 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
               children: [
                 TextFormField(
                   controller: _nameController,
-                  decoration: const InputDecoration(labelText: 'Name'),
-                  validator: (value) =>
-                      value!.isEmpty ? 'Please enter your name' : null,
+                  decoration: const InputDecoration(labelText: '이름'),
+                  validator: (value) => value!.isEmpty ? '이름을 입력해주세요' : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _emailController,
-                  decoration: const InputDecoration(labelText: 'Email'),
-                  validator: (value) =>
-                      value!.isEmpty ? 'Please enter your email' : null,
+                  decoration: const InputDecoration(labelText: '이메일'),
+                  validator: (value) => value!.isEmpty ? '이메일을 입력해주세요' : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _passwordController,
-                  decoration: const InputDecoration(labelText: 'Password'),
+                  decoration: const InputDecoration(labelText: '비밀번호'),
                   obscureText: true,
-                  validator: (value) =>
-                      value!.isEmpty ? 'Please enter your password' : null,
+                  validator: (value) => value!.isEmpty ? '비밀번호를 입력해주세요' : null,
                 ),
                 const SizedBox(height: 32),
                 ElevatedButton(
                   onPressed: isLoading ? null : _onSignUp,
                   child: isLoading
                       ? const CircularProgressIndicator()
-                      : const Text('Sign Up'),
+                      : const Text('회원가입'),
                 ),
               ],
             ),

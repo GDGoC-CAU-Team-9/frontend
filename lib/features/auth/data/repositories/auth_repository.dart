@@ -14,13 +14,43 @@ class AuthRepository {
 
   Future<void> login({required String email, required String password}) async {
     try {
-      await _dio.post(
+      final response = await _dio.post(
         '/auth/login',
         data: {'email': email, 'password': password},
+        options: Options(
+          contentType: Headers.formUrlEncodedContentType,
+          followRedirects: false,
+          validateStatus: (status) {
+            return status != null && status < 500;
+          },
+        ),
       );
-      // TODO: Handle response, save token/user
+
+      if (response.statusCode == 302) {
+        final location = response.headers.value('location');
+        if (location != null && location.contains('error')) {
+          throw DioException(
+            requestOptions: response.requestOptions,
+            response: response,
+            type: DioExceptionType.badResponse,
+            message: 'Login failed: Invalid credentials',
+          );
+        }
+        // Success (Redirects to / or home usually)
+        return;
+      } else if (response.statusCode == 200) {
+        // Success
+        return;
+      } else {
+        throw DioException(
+          requestOptions: response.requestOptions,
+          response: response,
+          type: DioExceptionType.badResponse,
+          message: 'Login failed with status: ${response.statusCode}',
+        );
+      }
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 
