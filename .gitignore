@@ -46,3 +46,4 @@ app.*.map.json
 
 # Agent configuration
 .agent/
+AGENT.md
