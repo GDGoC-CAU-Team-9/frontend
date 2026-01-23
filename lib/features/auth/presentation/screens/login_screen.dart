@@ -41,7 +41,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         error: (error, stack) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('Login Failed: $error')));
+          ).showSnackBar(SnackBar(content: Text('로그인 실패: $error')));
         },
       );
     });
@@ -50,7 +50,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final isLoading = authState is AsyncLoading;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
+      appBar: AppBar(title: const Text('로그인')),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Form(
@@ -61,29 +61,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             children: [
               TextFormField(
                 controller: _emailController,
-                decoration: const InputDecoration(labelText: 'Email'),
-                validator: (value) =>
-                    value!.isEmpty ? 'Please enter your email' : null,
+                decoration: const InputDecoration(labelText: '이메일'),
+                validator: (value) => value!.isEmpty ? '이메일을 입력해주세요' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _passwordController,
-                decoration: const InputDecoration(labelText: 'Password'),
+                decoration: const InputDecoration(labelText: '비밀번호'),
                 obscureText: true,
-                validator: (value) =>
-                    value!.isEmpty ? 'Please enter your password' : null,
+                validator: (value) => value!.isEmpty ? '비밀번호를 입력해주세요' : null,
               ),
               const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: isLoading ? null : _onLogin,
                 child: isLoading
                     ? const CircularProgressIndicator()
-                    : const Text('Login'),
+                    : const Text('로그인'),
               ),
               const SizedBox(height: 16),
               TextButton(
                 onPressed: () => context.push('/signup'),
-                child: const Text('Don\'t have an account? Sign Up'),
+                child: const Text('계정이 없으신가요? 회원가입'),
               ),
             ],
           ),
