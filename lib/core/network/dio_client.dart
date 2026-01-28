@@ -1,12 +1,8 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
-// ignore: uri_does_not_exist
-import 'package:dio/browser.dart'; // For Web Adapter
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:dio_cookie_manager/dio_cookie_manager.dart';
-import 'package:cookie_jar/cookie_jar.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 final dioProvider = Provider<Dio>((ref) {
   final dio = Dio(
@@ -24,20 +20,33 @@ final dioProvider = Provider<Dio>((ref) {
     ),
   );
 
-  // Web Configuration: Enable Cookies (CORS)
-  if (kIsWeb) {
-    // Enable credentials (cookies) for cross-origin requests
-    final adapter = BrowserHttpClientAdapter();
-    adapter.withCredentials = true;
-    dio.httpClientAdapter = adapter;
-  }
+  const storage = FlutterSecureStorage();
 
-  // Cookie Manager
-  // CookieManager is not supported on Web and causes a crash
-  if (!kIsWeb) {
-    final cookieJar = CookieJar();
-    dio.interceptors.add(CookieManager(cookieJar));
-  }
+  // Add Token Interceptor
+  dio.interceptors.add(
+    InterceptorsWrapper(
+      onRequest: (options, handler) async {
+        // Add Bearer Token if available
+        final token = await storage.read(key: 'accessToken');
+        if (token != null) {
+          options.headers['Authorization'] = 'Bearer $token';
+          print('Adding Token to Header: Bearer ${token.substring(0, 10)}...');
+        } else {
+          print('Warning: No token found in storage.');
+        }
+        return handler.next(options);
+      },
+      onError: (DioException e, handler) async {
+        if (e.response?.statusCode == 401) {
+          // TODO: Handle Token Refresh or Logout
+          print('Unauthorized: Token might be expired');
+        }
+        return handler.next(e);
+      },
+    ),
+  );
+
+  // Cookie Manager removed (JWT implementation)
 
   // Add interceptors here if needed (e.g., for logging or auth tokens)
   dio.interceptors.add(LogInterceptor(responseBody: true, requestBody: true));
