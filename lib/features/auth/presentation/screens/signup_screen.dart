@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
+import '../../../../core/theme/app_design.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
   const SignUpScreen({super.key});
@@ -61,40 +62,129 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     final isLoading = authState is AsyncLoading;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('회원가입')),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        title: const Text(
+          '회원가입',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.5),
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new, size: 18),
+              color: Colors.black87,
+              onPressed: () => context.pop(),
+            ),
+          ),
+        ),
+      ),
+      body: Container(
+        decoration: const BoxDecoration(gradient: AppDesign.backgroundGradient),
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                TextFormField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(labelText: '이름'),
-                  validator: (value) => value!.isEmpty ? '이름을 입력해주세요' : null,
+                const Icon(
+                  Icons.person_add_outlined,
+                  size: 80,
+                  color: Colors.teal,
                 ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(labelText: '이메일'),
-                  validator: (value) => value!.isEmpty ? '이메일을 입력해주세요' : null,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _passwordController,
-                  decoration: const InputDecoration(labelText: '비밀번호'),
-                  obscureText: true,
-                  validator: (value) => value!.isEmpty ? '비밀번호를 입력해주세요' : null,
-                ),
-                const SizedBox(height: 32),
-                ElevatedButton(
-                  onPressed: isLoading ? null : _onSignUp,
-                  child: isLoading
-                      ? const CircularProgressIndicator()
-                      : const Text('회원가입'),
+                const SizedBox(height: 20),
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: AppDesign.glassDecoration,
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        TextFormField(
+                          controller: _nameController,
+                          decoration: InputDecoration(
+                            labelText: '이름',
+                            prefixIcon: const Icon(Icons.person),
+                            filled: true,
+                            fillColor: Colors.white54,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                          validator: (value) =>
+                              value!.isEmpty ? '이름을 입력해주세요' : null,
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _emailController,
+                          decoration: InputDecoration(
+                            labelText: '이메일',
+                            prefixIcon: const Icon(Icons.email),
+                            filled: true,
+                            fillColor: Colors.white54,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                          validator: (value) =>
+                              value!.isEmpty ? '이메일을 입력해주세요' : null,
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _passwordController,
+                          decoration: InputDecoration(
+                            labelText: '비밀번호',
+                            prefixIcon: const Icon(Icons.lock),
+                            filled: true,
+                            fillColor: Colors.white54,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                          obscureText: true,
+                          validator: (value) =>
+                              value!.isEmpty ? '비밀번호를 입력해주세요' : null,
+                        ),
+                        const SizedBox(height: 32),
+                        SizedBox(
+                          height: 50,
+                          child: ElevatedButton(
+                            onPressed: isLoading ? null : _onSignUp,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.teal,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 2,
+                            ),
+                            child: isLoading
+                                ? const CircularProgressIndicator(
+                                    color: Colors.white,
+                                  )
+                                : const Text(
+                                    '회원가입',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),

@@ -19,34 +19,38 @@ class AuthRepository {
         data: {'email': email, 'password': password},
         options: Options(
           contentType: Headers.formUrlEncodedContentType,
-          followRedirects: false,
           validateStatus: (status) {
             return status != null && status < 500;
           },
         ),
       );
 
-      if (response.statusCode == 302) {
-        final location = response.headers.value('location');
-        if (location != null && location.contains('error')) {
-          throw DioException(
-            requestOptions: response.requestOptions,
-            response: response,
-            type: DioExceptionType.badResponse,
-            message: 'Login failed: Invalid credentials',
-          );
-        }
-        // Success (Redirects to / or home usually)
+      print('Login response: ${response.data}'); // Debug print
+
+      if (response.data is Map && response.data['isSuccess'] == false) {
+        throw DioException(
+          requestOptions: response.requestOptions,
+          response: response,
+          type: DioExceptionType.badResponse,
+          message: response.data['message'] ?? '로그인 실패',
+        );
+      }
+
+      if (response.statusCode == 200) {
         return;
-      } else if (response.statusCode == 200) {
-        // Success
-        return;
+      } else if (response.statusCode == 401) {
+        throw DioException(
+          requestOptions: response.requestOptions,
+          response: response,
+          type: DioExceptionType.badResponse,
+          message: '아이디 또는 비밀번호가 틀렸습니다.',
+        );
       } else {
         throw DioException(
           requestOptions: response.requestOptions,
           response: response,
           type: DioExceptionType.badResponse,
-          message: 'Login failed with status: ${response.statusCode}',
+          message: '로그인 실패: ${response.statusCode}',
         );
       }
     } catch (e) {
