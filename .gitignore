@@ -48,3 +48,4 @@ app.*.map.json
 .agent/
 ./SPECIFICATION.md
 ./AGENT.md
+.env
