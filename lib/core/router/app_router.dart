@@ -8,6 +8,7 @@ import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/menu/presentation/screens/analysis_result_screen.dart';
 import '../../features/menu/presentation/screens/analysis_loading_screen.dart';
+import '../../features/camera/presentation/screens/camera_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -38,11 +39,18 @@ final routerProvider = Provider<GoRouter>((ref) {
           return AnalysisLoadingScreen(imageFile: imageFile);
         },
       ),
+
       GoRoute(
         path: '/analysis-result',
         builder: (context, state) {
           final imagePath = state.extra as String;
           return AnalysisResultScreen(imagePath: imagePath);
+        },
+      ),
+      GoRoute(
+        path: '/camera',
+        builder: (context, state) {
+          return const CameraScreen();
         },
       ),
     ],
