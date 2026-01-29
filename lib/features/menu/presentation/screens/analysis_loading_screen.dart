@@ -2,13 +2,14 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import '../providers/menu_provider.dart';
 import '../../../../core/theme/app_design.dart';
 
 class AnalysisLoadingScreen extends ConsumerStatefulWidget {
-  final String imagePath;
+  final XFile imageFile;
 
-  const AnalysisLoadingScreen({super.key, required this.imagePath});
+  const AnalysisLoadingScreen({super.key, required this.imageFile});
 
   @override
   ConsumerState<AnalysisLoadingScreen> createState() =>
@@ -33,7 +34,7 @@ class _AnalysisLoadingScreenState extends ConsumerState<AnalysisLoadingScreen>
 
     // Start analysis
     Future.microtask(() {
-      ref.read(menuAnalysisProvider.notifier).analyzeMenu(widget.imagePath);
+      ref.read(menuAnalysisProvider.notifier).analyzeMenu(widget.imageFile);
     });
 
     // Simulate step progress matching the mock repository delay (2 seconds)
@@ -67,7 +68,9 @@ class _AnalysisLoadingScreenState extends ConsumerState<AnalysisLoadingScreen>
           if (mounted) {
             context.pushReplacement(
               '/analysis-result',
-              extra: widget.imagePath,
+              extra: widget
+                  .imageFile
+                  .path, // We can pass path here for display, AnalysisResult can handle dynamic or just String
             );
           }
         });
@@ -120,7 +123,7 @@ class _AnalysisLoadingScreenState extends ConsumerState<AnalysisLoadingScreen>
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const Text(
-                            '반경 450미터 안에서 안전한 식당을 찾고 있어요...', // Just keeping the text from request
+                            '메뉴판 이미지를 분석하고 있어요...',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 18,
@@ -130,7 +133,7 @@ class _AnalysisLoadingScreenState extends ConsumerState<AnalysisLoadingScreen>
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            '메뉴 성분과 개인 프로필을 분석 중입니다...',
+                            'AI가 메뉴 이름과 재료를 인식 중입니다...',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 14,
@@ -140,11 +143,11 @@ class _AnalysisLoadingScreenState extends ConsumerState<AnalysisLoadingScreen>
                           const SizedBox(height: 30),
 
                           // Steps
-                          _buildStepItem('알러지 필터링', _step1),
+                          _buildStepItem('메뉴 텍스트 인식', _step1),
                           const SizedBox(height: 12),
-                          _buildStepItem('식단 조건 매칭', _step2),
+                          _buildStepItem('재료 성분 분석', _step2),
                           const SizedBox(height: 12),
-                          _buildStepItem('식당 점수 계산', _step3),
+                          _buildStepItem('알러지 위험 진단', _step3),
 
                           const SizedBox(height: 30),
 

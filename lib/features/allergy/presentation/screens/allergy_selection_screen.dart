@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -221,47 +222,112 @@ class _AllergySelectionScreenState
 
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true, // Allow it to take more space if needed
       builder: (context) {
-        return Container(
-          padding: const EdgeInsets.all(20),
-          height: MediaQuery.of(context).size.height * 0.5,
-          child: Column(
-            children: [
-              const Text(
-                'Add Ingredient',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              if (availableAllergies.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.all(20),
-                  child: Text(
-                    'All available ingredients are already selected.',
-                  ),
-                )
-              else
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: availableAllergies.length,
-                    itemBuilder: (context, index) {
-                      final allergy = availableAllergies[index];
-                      return ListTile(
-                        title: Text(allergy.name),
-                        onTap: () {
-                          ref
-                              .read(allergySelectionProvider.notifier)
-                              .toggleAllergy(allergy.id);
-                          _saveChanges();
-                          Navigator.pop(context);
-                        },
-                      );
-                    },
-                  ),
+        return BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+          child: Container(
+            height: MediaQuery.of(context).size.height * 0.6,
+            margin: const EdgeInsets.only(
+              left: 16,
+              right: 16,
+              bottom: 40,
+            ), // Floating margin
+            decoration: AppDesign.glassDecoration.copyWith(
+              color: Colors.white.withOpacity(
+                0.9,
+              ), // Higher opacity for readability
+              borderRadius: BorderRadius.circular(25),
+            ),
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              children: [
+                // Header
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Add Ingredient',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Colors.grey),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
                 ),
-            ],
+                const SizedBox(height: 10),
+                const Divider(),
+                const SizedBox(height: 10),
+
+                // List
+                if (availableAllergies.isEmpty)
+                  const Expanded(
+                    child: Center(
+                      child: Text(
+                        'All available ingredients selected.',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                  )
+                else
+                  Expanded(
+                    child: ListView.separated(
+                      itemCount: availableAllergies.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 8),
+                      itemBuilder: (context, index) {
+                        final allergy = availableAllergies[index];
+                        return InkWell(
+                          onTap: () {
+                            ref
+                                .read(allergySelectionProvider.notifier)
+                                .toggleAllergy(allergy.id);
+                            _saveChanges();
+                            Navigator.pop(context);
+                          },
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 12,
+                              horizontal: 16,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade100.withOpacity(0.5),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.grey.withOpacity(0.2),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.add_circle_outline,
+                                  color: Colors.teal.shade300,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  allergy.name,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+              ],
+            ),
           ),
         );
       },
