@@ -21,7 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (image != null) {
         if (mounted) {
           // Navigate to analysis result
-          context.push('/analysis-loading', extra: image.path);
+          context.push('/analysis-loading', extra: image);
         }
       }
     } catch (e) {

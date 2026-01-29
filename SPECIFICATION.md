@@ -86,6 +86,9 @@
 알러지 목록 조회,GET,/allergies,✅ 완료,-
 내 알러지 조회,GET,/my/allergies,✅ 완료,-
 내 알러지 저장,PUT,/my/allergies,✅ 완료,"{""id"": [1, 2, 5]}"
+S3 Presigned URL 발급,POST,/files/presigned-url,✅ 완료,"{""path"": ""menu_board_request"", ""fileType"": ""png""}"
+S3 파일 상태 업데이트,PATCH,/files/{fileId}/status,✅ 완료,"{""fileStatus"": ""UPLOADED""}"
+AI 메뉴 분석 (외부),POST,https://hn-ui-gdg-team-9.hf.space/rank,✅ 완료 (Frontend 직접 호출),"{""image_url"": ""..."", ""avoid"": [...]}"
 
 ### 식당 검색 (POST)
 
@@ -103,6 +106,35 @@ JSON
 
 {
   "id": [1, 2, 5]
+}
+
+### S3 Presigned URL 발급 (POST)
+- **설명**: 파일 업로드를 위한 Presigned URL을 발급받습니다.
+- **URL**: `/files/presigned-url`
+
+JSON
+{
+  "path": "menu_board_request",
+  "fileType": "png"
+}
+
+### S3 파일 상태 업데이트 (PATCH)
+- **설명**: S3 업로드 완료 후 백엔드에 상태를 업데이트하고 접근 가능한 URL을 받습니다.
+- **URL**: `/files/{fileId}/status`
+
+JSON
+{
+  "fileStatus": "UPLOADED"
+}
+
+### AI 메뉴 분석 (POST - External)
+- **설명**: Frontend에서 S3 업로드 완료 후 확보한 URL과 유저의 기피 재료를 AI 서비스에 직접 보냅니다.
+- **URL**: `https://hn-ui-gdg-team-9.hf.space/rank`
+
+JSON
+{
+  "image_url": "https://safeplate26.s3.ap-northeast-2.amazonaws.com/...",
+  "avoid": ["계란", "땅콩", "고수"]
 }
 
 ## ERD 참고용

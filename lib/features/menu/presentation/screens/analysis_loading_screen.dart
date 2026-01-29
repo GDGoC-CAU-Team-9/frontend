@@ -2,13 +2,14 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import '../providers/menu_provider.dart';
 import '../../../../core/theme/app_design.dart';
 
 class AnalysisLoadingScreen extends ConsumerStatefulWidget {
-  final String imagePath;
+  final XFile imageFile;
 
-  const AnalysisLoadingScreen({super.key, required this.imagePath});
+  const AnalysisLoadingScreen({super.key, required this.imageFile});
 
   @override
   ConsumerState<AnalysisLoadingScreen> createState() =>
@@ -33,7 +34,7 @@ class _AnalysisLoadingScreenState extends ConsumerState<AnalysisLoadingScreen>
 
     // Start analysis
     Future.microtask(() {
-      ref.read(menuAnalysisProvider.notifier).analyzeMenu(widget.imagePath);
+      ref.read(menuAnalysisProvider.notifier).analyzeMenu(widget.imageFile);
     });
 
     // Simulate step progress matching the mock repository delay (2 seconds)
@@ -67,7 +68,9 @@ class _AnalysisLoadingScreenState extends ConsumerState<AnalysisLoadingScreen>
           if (mounted) {
             context.pushReplacement(
               '/analysis-result',
-              extra: widget.imagePath,
+              extra: widget
+                  .imageFile
+                  .path, // We can pass path here for display, AnalysisResult can handle dynamic or just String
             );
           }
         });
