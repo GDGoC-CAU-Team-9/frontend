@@ -2,8 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
-import 'package:path/path.dart' as p;
+// import 'package:path/path.dart' as p; // Removed unused import
 import '../../../../core/network/dio_client.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart'; // Added here
 
 // Model for Analysis Result
 class MenuAnalysisResult {
@@ -47,11 +48,25 @@ class MenuRepository {
     List<String> avoidList,
   ) async {
     try {
-      // Use file.name for extension as file.path on web might be a blob URL without extension
-      final String fileExtension = p
-          .extension(file.name)
-          .replaceAll('.', '')
-          .toLowerCase();
+      // 1. Normalize Image (Resize & Convert to JPEG)
+      print('Step 0: Normalizing Image to JPEG...');
+      final Uint8List originalBytes = await file.readAsBytes();
+
+      // Compress and convert to JPEG
+      // Web, Android, iOS support via compressWithList
+      final Uint8List compressedBytes =
+          await FlutterImageCompress.compressWithList(
+            originalBytes,
+            minHeight: 1024,
+            minWidth: 1024,
+            quality: 85,
+            format: CompressFormat.jpeg,
+          );
+
+      const String fileExtension = 'jpeg'; // Always JPEG after conversion
+      print(
+        'Image normalized. Size: ${originalBytes.length} -> ${compressedBytes.length}',
+      );
 
       // 1. Get Presigned URL
       print('Step 1: Requesting Presigned URL...');
@@ -78,17 +93,14 @@ class MenuRepository {
       // Create a separate Dio instance for S3 to avoid default interceptors (like Auth headers)
       final s3Dio = Dio();
 
-      // On web, file.length() is not supported for XFile, so we read bytes.
-      // For mobile, we could use openRead, but readAsBytes works cross-platform for reasonable sizes.
-      final Uint8List fileBytes = await file.readAsBytes();
-
+      // Use compressedBytes instead of original fileBytes
       await s3Dio.put(
         presignedUrl,
-        data: fileBytes, // Pass bytes directly
+        data: compressedBytes,
         options: Options(
           headers: {
             'Content-Type': 'image/$fileExtension',
-            'Content-Length': fileBytes.length,
+            'Content-Length': compressedBytes.length,
           },
         ),
       );
