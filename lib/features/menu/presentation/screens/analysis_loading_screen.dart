@@ -170,6 +170,38 @@ class _AnalysisLoadingScreenState extends ConsumerState<AnalysisLoadingScreen>
               ],
             ),
           ),
+          // 3. Cancel Button
+          Positioned(
+            top: 0,
+            right: 0,
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: GestureDetector(
+                  onTap: () {
+                    if (context.canPop()) {
+                      context.pop();
+                    } else {
+                      // Fallback if can't pop (e.g. opened directly, though unlikely here)
+                      context.go('/home');
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.5),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.close,
+                      color: Colors.black54,
+                      size: 24,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
