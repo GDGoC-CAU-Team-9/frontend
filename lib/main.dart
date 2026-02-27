@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
+import 'core/constants/app_constants.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,14 +15,7 @@ void main() async {
   runApp(
     ProviderScope(
       child: EasyLocalization(
-        supportedLocales: const [
-          Locale('ko'),
-          Locale('en'),
-          Locale('es'),
-          Locale('fr'),
-          Locale('ja'),
-          Locale('zh'),
-        ],
+        supportedLocales: AppConstants.supportedLocales,
         path: 'assets/translations',
         fallbackLocale: const Locale('ko'),
         child: const MyApp(),

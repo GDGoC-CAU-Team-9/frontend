@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../../core/theme/app_design.dart';
+import '../../../../core/constants/app_constants.dart';
 import 'package:image_picker/image_picker.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -149,14 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showLanguageSelectionBottomSheet(BuildContext context) {
-    final List<Map<String, String>> languages = [
-      {'code': 'ko', 'icon': '🇰🇷'},
-      {'code': 'en', 'icon': '🇺🇸'},
-      {'code': 'es', 'icon': '🇪🇸'},
-      {'code': 'fr', 'icon': '🇫🇷'},
-      {'code': 'ja', 'icon': '🇯🇵'},
-      {'code': 'zh', 'icon': '🇨🇳'},
-    ];
+    final List<Map<String, String>> languages = AppConstants.supportedLanguages;
 
     showModalBottomSheet(
       context: context,

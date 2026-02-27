@@ -1,12 +1,12 @@
 {
     "language_changed": "言語が${lang}に変更されました。",
     "language": {
-        "ko": "한국어",
-        "en": "English",
-        "es": "Español",
-        "fr": "Français",
+        "ko": "韓国語",
+        "en": "英語",
+        "es": "スペイン語",
+        "fr": "フランス語",
         "ja": "日本語",
-        "zh": "中文"
+        "zh": "中国語"
     },
     "drawer": {
         "profile_management": "プロファイル管理",

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../providers/auth_provider.dart';
 import '../../../../core/theme/app_design.dart';
+import '../../../../core/constants/app_constants.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
   const SignUpScreen({super.key});
@@ -161,32 +162,12 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                         const SizedBox(height: 16),
                         DropdownButtonFormField<String>(
                           value: context.locale.languageCode,
-                          items: [
-                            DropdownMenuItem(
-                              value: 'ko',
-                              child: Text(tr('language.ko')),
-                            ),
-                            DropdownMenuItem(
-                              value: 'en',
-                              child: Text(tr('language.en')),
-                            ),
-                            DropdownMenuItem(
-                              value: 'es',
-                              child: Text(tr('language.es')),
-                            ),
-                            DropdownMenuItem(
-                              value: 'fr',
-                              child: Text(tr('language.fr')),
-                            ),
-                            DropdownMenuItem(
-                              value: 'ja',
-                              child: Text(tr('language.ja')),
-                            ),
-                            DropdownMenuItem(
-                              value: 'zh',
-                              child: Text(tr('language.zh')),
-                            ),
-                          ],
+                          items: AppConstants.supportedLanguages.map((lang) {
+                            return DropdownMenuItem<String>(
+                              value: lang['code'],
+                              child: Text(tr('language.${lang['code']}')),
+                            );
+                          }).toList(),
                           onChanged: null,
                           decoration: InputDecoration(
                             labelText: tr('signup.language_label'),

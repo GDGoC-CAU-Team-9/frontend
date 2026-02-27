@@ -1,11 +1,11 @@
 {
     "language_changed": "语言已更改为 ${lang}。",
     "language": {
-        "ko": "한국어",
-        "en": "English",
-        "es": "Español",
-        "fr": "Français",
-        "ja": "日本語",
+        "ko": "韩语",
+        "en": "英语",
+        "es": "西班牙语",
+        "fr": "法语",
+        "ja": "日语",
         "zh": "中文"
     },
     "drawer": {

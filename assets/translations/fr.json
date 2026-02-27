@@ -1,12 +1,12 @@
 {
     "language_changed": "Langue modifiée en ${lang}.",
     "language": {
-        "ko": "한국어",
-        "en": "English",
-        "es": "Español",
+        "ko": "Coréen",
+        "en": "Anglais",
+        "es": "Espagnol",
         "fr": "Français",
-        "ja": "日本語",
-        "zh": "中文"
+        "ja": "Japonais",
+        "zh": "Chinois"
     },
     "drawer": {
         "profile_management": "Gestion de Profil",
