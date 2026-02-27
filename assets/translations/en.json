@@ -1,0 +1,20 @@
+{
+    "language_changed": "Language changed to ${lang}.",
+    "language": {
+        "ko": "Korean",
+        "en": "English",
+        "es": "Spanish",
+        "fr": "French",
+        "ja": "Japanese",
+        "zh": "Chinese"
+    },
+    "drawer": {
+        "profile_management": "Profile Management",
+        "language_change": "Change Language",
+        "logout": "Logout"
+    },
+    "signup": {
+        "language_label": "Preferred Language",
+        "password_empty_error": "Please enter a password"
+    }
+}

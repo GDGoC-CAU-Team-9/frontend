@@ -1,9 +1,11 @@
+import 'dart:developer' as developer;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
-import 'package:path/path.dart' as p;
+// import 'package:path/path.dart' as p; // Removed unused import
 import '../../../../core/network/dio_client.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart'; // Added here
 
 // Model for Analysis Result
 class MenuAnalysisResult {
@@ -47,15 +49,39 @@ class MenuRepository {
     List<String> avoidList,
   ) async {
     try {
-      // Use file.name for extension as file.path on web might be a blob URL without extension
-      final String fileExtension = p
-          .extension(file.name)
-          .replaceAll('.', '')
-          .toLowerCase();
+      // 1. Normalize Image (Resize & Convert to JPEG)
+      developer.log(
+        'Step 0: Normalizing Image to JPEG...',
+        name: 'MenuRepository',
+      );
+      final Uint8List originalBytes = await file.readAsBytes();
+
+      // Compress and convert to JPEG
+      // Web, Android, iOS support via compressWithList
+      final Uint8List compressedBytes =
+          await FlutterImageCompress.compressWithList(
+            originalBytes,
+            minHeight: 1024,
+            minWidth: 1024,
+            quality: 85,
+            format: CompressFormat.jpeg,
+          );
+
+      const String fileExtension = 'jpeg'; // Always JPEG after conversion
+      developer.log(
+        'Image normalized. Size: ${originalBytes.length} -> ${compressedBytes.length}',
+        name: 'MenuRepository',
+      );
 
       // 1. Get Presigned URL
-      print('Step 1: Requesting Presigned URL...');
-      print('File Type: $fileExtension'); // Debug print
+      developer.log(
+        'Step 1: Requesting Presigned URL...',
+        name: 'MenuRepository',
+      );
+      developer.log(
+        'File Type: $fileExtension',
+        name: 'MenuRepository',
+      ); // Debug print
       final presignedResponse = await _dio.post(
         '/files/presigned-url',
         data: {'path': 'menu_board_request', 'fileType': fileExtension},
@@ -71,31 +97,31 @@ class MenuRepository {
       final result = presignedResponse.data['result'];
       final int fileId = result['fileId'];
       final String presignedUrl = result['presignedUrl'];
-      print('Got Presigned URL for FileID: $fileId');
+      developer.log(
+        'Got Presigned URL for FileID: $fileId',
+        name: 'MenuRepository',
+      );
 
       // 2. Upload to S3 (Direct Binary Upload)
-      print('Step 2: Uploading to S3...');
+      developer.log('Step 2: Uploading to S3...', name: 'MenuRepository');
       // Create a separate Dio instance for S3 to avoid default interceptors (like Auth headers)
       final s3Dio = Dio();
 
-      // On web, file.length() is not supported for XFile, so we read bytes.
-      // For mobile, we could use openRead, but readAsBytes works cross-platform for reasonable sizes.
-      final Uint8List fileBytes = await file.readAsBytes();
-
+      // Use compressedBytes instead of original fileBytes
       await s3Dio.put(
         presignedUrl,
-        data: fileBytes, // Pass bytes directly
+        data: compressedBytes,
         options: Options(
           headers: {
             'Content-Type': 'image/$fileExtension',
-            'Content-Length': fileBytes.length,
+            'Content-Length': compressedBytes.length,
           },
         ),
       );
-      print('S3 Upload Completed');
+      developer.log('S3 Upload Completed', name: 'MenuRepository');
 
       // 3. Update File Status
-      print('Step 3: Updating File Status...');
+      developer.log('Step 3: Updating File Status...', name: 'MenuRepository');
       final statusResponse = await _dio.patch(
         '/files/$fileId/status',
         data: {'fileStatus': 'UPLOADED'},
@@ -109,10 +135,16 @@ class MenuRepository {
 
       // Get the uploaded file URL from the status response
       final String uploadedFileUrl = statusResponse.data['result']['fileUrl'];
-      print('File Status Updated. URL: $uploadedFileUrl');
+      developer.log(
+        'File Status Updated. URL: $uploadedFileUrl',
+        name: 'MenuRepository',
+      );
 
       // 4. Request Analysis (Direct AI Call)
-      print('Step 4: Requesting Menu Analysis (Direct AI)...');
+      developer.log(
+        'Step 4: Requesting Menu Analysis (Direct AI)...',
+        name: 'MenuRepository',
+      );
 
       // AI Service Endpoint
       const aiEndpoint = 'https://hn-ui-gdg-team-9.hf.space/rank';
@@ -126,7 +158,7 @@ class MenuRepository {
 
       if (analysisResponse.statusCode == 200) {
         final data = analysisResponse.data;
-        print('AI Analysis Result: $data');
+        developer.log('AI Analysis Result: $data', name: 'MenuRepository');
 
         List<dynamic> items = [];
         if (data is Map<String, dynamic> && data.containsKey('items')) {
@@ -140,7 +172,11 @@ class MenuRepository {
         );
       }
     } catch (e) {
-      print('Error during menu analysis flow: $e');
+      developer.log(
+        'Error during menu analysis flow: $e',
+        name: 'MenuRepository',
+        error: e,
+      );
       rethrow;
     }
   }

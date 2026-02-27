@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../providers/auth_provider.dart';
 import '../../../../core/theme/app_design.dart';
+import '../../../../core/constants/app_constants.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
   const SignUpScreen({super.key});
@@ -153,8 +155,30 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                             ),
                           ),
                           obscureText: true,
-                          validator: (value) =>
-                              value!.isEmpty ? '비밀번호를 입력해주세요' : null,
+                          validator: (value) => value!.isEmpty
+                              ? tr('signup.password_empty_error')
+                              : null,
+                        ),
+                        const SizedBox(height: 16),
+                        DropdownButtonFormField<String>(
+                          value: context.locale.languageCode,
+                          items: AppConstants.supportedLanguages.map((lang) {
+                            return DropdownMenuItem<String>(
+                              value: lang['code'],
+                              child: Text(tr('language.${lang['code']}')),
+                            );
+                          }).toList(),
+                          onChanged: null,
+                          decoration: InputDecoration(
+                            labelText: tr('signup.language_label'),
+                            prefixIcon: const Icon(Icons.language),
+                            filled: true,
+                            fillColor: Colors.white54,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 32),
                         SizedBox(
