@@ -1,0 +1,20 @@
+{
+    "language_changed": "언어가 ${lang}로 변경되었습니다.",
+    "language": {
+        "ko": "한국어",
+        "en": "English",
+        "es": "Español",
+        "fr": "Français",
+        "ja": "日本語",
+        "zh": "中文"
+    },
+    "drawer": {
+        "profile_management": "프로필 관리",
+        "language_change": "언어 변경",
+        "logout": "로그아웃"
+    },
+    "signup": {
+        "language_label": "사용하는 언어",
+        "password_empty_error": "비밀번호를 입력해주세요"
+    }
+}

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../providers/auth_provider.dart';
 import '../../../../core/theme/app_design.dart';
 
@@ -153,8 +154,50 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                             ),
                           ),
                           obscureText: true,
-                          validator: (value) =>
-                              value!.isEmpty ? '비밀번호를 입력해주세요' : null,
+                          validator: (value) => value!.isEmpty
+                              ? tr('signup.password_empty_error')
+                              : null,
+                        ),
+                        const SizedBox(height: 16),
+                        DropdownButtonFormField<String>(
+                          value: context.locale.languageCode,
+                          items: [
+                            DropdownMenuItem(
+                              value: 'ko',
+                              child: Text(tr('language.ko')),
+                            ),
+                            DropdownMenuItem(
+                              value: 'en',
+                              child: Text(tr('language.en')),
+                            ),
+                            DropdownMenuItem(
+                              value: 'es',
+                              child: Text(tr('language.es')),
+                            ),
+                            DropdownMenuItem(
+                              value: 'fr',
+                              child: Text(tr('language.fr')),
+                            ),
+                            DropdownMenuItem(
+                              value: 'ja',
+                              child: Text(tr('language.ja')),
+                            ),
+                            DropdownMenuItem(
+                              value: 'zh',
+                              child: Text(tr('language.zh')),
+                            ),
+                          ],
+                          onChanged: null,
+                          decoration: InputDecoration(
+                            labelText: tr('signup.language_label'),
+                            prefixIcon: const Icon(Icons.language),
+                            filled: true,
+                            fillColor: Colors.white54,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 32),
                         SizedBox(

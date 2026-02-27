@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../../core/theme/app_design.dart';
 import 'package:image_picker/image_picker.dart';
@@ -147,6 +148,125 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _showLanguageSelectionBottomSheet(BuildContext context) {
+    final List<Map<String, String>> languages = [
+      {'code': 'ko', 'icon': '🇰🇷'},
+      {'code': 'en', 'icon': '🇺🇸'},
+      {'code': 'es', 'icon': '🇪🇸'},
+      {'code': 'fr', 'icon': '🇫🇷'},
+      {'code': 'ja', 'icon': '🇯🇵'},
+      {'code': 'zh', 'icon': '🇨🇳'},
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent, // Transparent background
+      isScrollControlled: true,
+      builder: (context) => BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5), // Blur behind
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: const BoxDecoration(
+                color: Colors.transparent,
+              ), // Glassmorphism container
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Header Indicator
+                  Container(
+                    width: 40,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    tr('drawer.language_change'),
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // Language Grid or List
+                  Container(
+                    decoration: AppDesign.glassDecoration.copyWith(
+                      color: Colors.white.withOpacity(0.6),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: languages.length,
+                      separatorBuilder: (context, index) =>
+                          Divider(color: Colors.grey.shade300, height: 1),
+                      itemBuilder: (context, index) {
+                        final lang = languages[index];
+                        final isSelected =
+                            context.locale.languageCode == lang['code'];
+
+                        return ListTile(
+                          leading: Text(
+                            lang['icon']!,
+                            style: const TextStyle(fontSize: 24),
+                          ),
+                          title: Text(
+                            tr('language.${lang['code']}'),
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              color: isSelected ? Colors.teal : Colors.black87,
+                            ),
+                          ),
+                          trailing: isSelected
+                              ? const Icon(
+                                  Icons.check_circle,
+                                  color: Colors.teal,
+                                )
+                              : null,
+                          onTap: () async {
+                            Navigator.pop(context); // Close bottom sheet
+                            if (!isSelected) {
+                              await context.setLocale(Locale(lang['code']!));
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      tr(
+                                        'language_changed',
+                                        namedArgs: {
+                                          'lang': tr(
+                                            'language.${lang['code']}',
+                                          ),
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -255,9 +375,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           Icons.person_outline,
                           color: Colors.teal,
                         ),
-                        title: const Text(
-                          '프로필 관리',
-                          style: TextStyle(
+                        title: Text(
+                          tr('drawer.profile_management'),
+                          style: const TextStyle(
                             fontWeight: FontWeight.w600,
                             color: Colors.black87,
                           ),
@@ -276,12 +396,41 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       child: ListTile(
                         leading: const Icon(
+                          Icons.language,
+                          color: Colors.blueAccent,
+                        ),
+                        title: Text(
+                          tr('drawer.language_change'),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        trailing: const Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          size: 18,
+                          color: Colors.black54,
+                        ),
+                        onTap: () {
+                          Navigator.pop(context); // Close Drawer
+                          _showLanguageSelectionBottomSheet(context);
+                        },
+                      ),
+                    ),
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      decoration: AppDesign.glassDecoration.copyWith(
+                        borderRadius: BorderRadius.circular(15),
+                        color: Colors.white.withOpacity(0.4),
+                      ),
+                      child: ListTile(
+                        leading: const Icon(
                           Icons.logout,
                           color: Colors.redAccent,
                         ),
-                        title: const Text(
-                          '로그아웃',
-                          style: TextStyle(
+                        title: Text(
+                          tr('drawer.logout'),
+                          style: const TextStyle(
                             fontWeight: FontWeight.w600,
                             color: Colors.redAccent,
                           ),

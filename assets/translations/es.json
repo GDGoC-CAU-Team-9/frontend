@@ -1,0 +1,20 @@
+{
+    "language_changed": "Idioma cambiado a ${lang}.",
+    "language": {
+        "ko": "한국어",
+        "en": "English",
+        "es": "Español",
+        "fr": "Français",
+        "ja": "日本語",
+        "zh": "中文"
+    },
+    "drawer": {
+        "profile_management": "Gestión de Perfil",
+        "language_change": "Cambiar Idioma",
+        "logout": "Cerrar sesión"
+    },
+    "signup": {
+        "language_label": "Idioma preferido",
+        "password_empty_error": "Por favor introduzca una contraseña"
+    }
+}
