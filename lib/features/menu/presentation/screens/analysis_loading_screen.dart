@@ -8,8 +8,13 @@ import '../../../../core/theme/app_design.dart';
 
 class AnalysisLoadingScreen extends ConsumerStatefulWidget {
   final XFile imageFile;
+  final int? teamMemberId;
 
-  const AnalysisLoadingScreen({super.key, required this.imageFile});
+  const AnalysisLoadingScreen({
+    super.key,
+    required this.imageFile,
+    this.teamMemberId,
+  });
 
   @override
   ConsumerState<AnalysisLoadingScreen> createState() =>
@@ -34,7 +39,9 @@ class _AnalysisLoadingScreenState extends ConsumerState<AnalysisLoadingScreen>
 
     // Start analysis
     Future.microtask(() {
-      ref.read(menuAnalysisProvider.notifier).analyzeMenu(widget.imageFile);
+      ref
+          .read(menuAnalysisProvider.notifier)
+          .analyzeMenu(widget.imageFile, teamMemberId: widget.teamMemberId);
     });
 
     // Simulate step progress matching the mock repository delay (2 seconds)

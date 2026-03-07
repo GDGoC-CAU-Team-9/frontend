@@ -7,6 +7,7 @@ import 'package:easy_localization/easy_localization.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../history/presentation/providers/history_provider.dart';
 import '../../../history/data/repositories/history_repository.dart';
+import '../../../team/presentation/providers/team_provider.dart';
 import '../../../../core/theme/app_design.dart';
 import '../../../../core/constants/app_constants.dart';
 import 'package:image_picker/image_picker.dart';
@@ -30,10 +31,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     });
   }
 
-  Future<void> _pickImage(ImageSource source) async {
+  Future<void> _pickImage(
+    ImageSource source, {
+    int? teamMemberId,
+  }) async {
     if (kIsWeb && source == ImageSource.camera) {
       if (mounted) {
-        await context.push('/camera');
+        await context.push(
+          '/camera',
+          extra: {'teamMemberId': teamMemberId},
+        );
         // Refresh history when returning from camera flow
         if (mounted) {
           ref.read(historyListProvider.notifier).refresh();
@@ -46,7 +53,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       final XFile? image = await _picker.pickImage(source: source);
       if (image != null) {
         if (mounted) {
-          await context.push('/analysis-loading', extra: image);
+          await context.push(
+            '/analysis-loading',
+            extra: {'imageFile': image, 'teamMemberId': teamMemberId},
+          );
           // Refresh history when returning from analysis
           if (mounted) {
             ref.read(historyListProvider.notifier).refresh();
@@ -62,7 +72,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
-  void _showImageSourceActionSheet(BuildContext context) {
+  void _showImageSourceActionSheet(
+    BuildContext context, {
+    int? teamMemberId,
+  }) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -90,7 +103,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 color: Colors.teal,
                 onTap: () {
                   Navigator.of(context).pop();
-                  _pickImage(ImageSource.camera);
+                  _pickImage(ImageSource.camera, teamMemberId: teamMemberId);
                 },
               ),
               const SizedBox(height: 16),
@@ -101,10 +114,271 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 color: Colors.blueAccent,
                 onTap: () {
                   Navigator.of(context).pop();
-                  _pickImage(ImageSource.gallery);
+                  _pickImage(ImageSource.gallery, teamMemberId: teamMemberId);
                 },
               ),
               const SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showTargetSelectionSheet(BuildContext context) {
+    // Refresh team list each time the selector opens so users see latest changes.
+    ref.read(teamListProvider.notifier).fetchInitial();
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: const BoxDecoration(color: Colors.transparent),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 40,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                '누구 기준으로 분석할까요?',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 16),
+              GestureDetector(
+                onTap: () {
+                  Navigator.pop(context);
+                  _showImageSourceActionSheet(context);
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
+                  decoration: AppDesign.glassDecoration.copyWith(
+                    color: Colors.white.withOpacity(0.85),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.teal.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.person,
+                          color: Colors.teal,
+                          size: 26,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '나만을 위한 분석',
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              '내 기피 재료/알러지만 반영',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.black54,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        size: 16,
+                        color: Colors.grey,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+              const Text(
+                '팀을 선택해 같이 분석하기',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Container(
+                width: double.infinity,
+                decoration: AppDesign.glassDecoration.copyWith(
+                  color: Colors.white.withOpacity(0.8),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Consumer(
+                  builder: (context, ref, _) {
+                    final teamState = ref.watch(teamListProvider);
+                    return teamState.when(
+                      loading: () => const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 20),
+                        child: Center(
+                          child: CircularProgressIndicator(color: Colors.teal),
+                        ),
+                      ),
+                      error: (err, stack) => Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '팀 목록을 불러오지 못했습니다.\n$err',
+                              style: const TextStyle(
+                                color: Colors.redAccent,
+                                fontSize: 13,
+                              ),
+                            ),
+                            TextButton.icon(
+                              onPressed: () => ref
+                                  .read(teamListProvider.notifier)
+                                  .fetchInitial(),
+                              icon: const Icon(Icons.refresh),
+                              label: const Text('다시 시도'),
+                            ),
+                          ],
+                        ),
+                      ),
+                      data: (teams) {
+                        if (teams.isEmpty) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 18,
+                              horizontal: 16,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  '등록된 팀이 없습니다.',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                const Text(
+                                  '팀을 만들거나 초대에 참여해보세요.',
+                                  style: TextStyle(
+                                    color: Colors.black54,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                TextButton.icon(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                    context.push('/teams');
+                                  },
+                                  icon: const Icon(Icons.group_add),
+                                  label: const Text('팀 만들기/참여하기'),
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: Colors.teal,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+
+                        return SizedBox(
+                          height: 240,
+                          child: ListView.separated(
+                            padding: const EdgeInsets.symmetric(vertical: 6),
+                            itemCount: teams.length,
+                            separatorBuilder: (_, __) => Divider(
+                              height: 1,
+                              color: Colors.grey.shade300,
+                            ),
+                            itemBuilder: (context, index) {
+                              final team = teams[index];
+                              return ListTile(
+                                leading: CircleAvatar(
+                                  backgroundColor: Colors.teal.withOpacity(0.15),
+                                  child: const Icon(
+                                    Icons.group,
+                                    color: Colors.teal,
+                                  ),
+                                ),
+                                title: Text(
+                                  team.teamName,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  '멤버 ${team.members.length}명 · ID ${team.teamMemberId}',
+                                  style: const TextStyle(
+                                    color: Colors.black54,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                trailing: const Icon(
+                                  Icons.arrow_forward_ios_rounded,
+                                  size: 16,
+                                  color: Colors.grey,
+                                ),
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  _showImageSourceActionSheet(
+                                    context,
+                                    teamMemberId: team.teamMemberId,
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 12),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    context.push('/teams');
+                  },
+                  icon: const Icon(Icons.manage_accounts, color: Colors.white),
+                  label: const Text(
+                    '팀 관리로 이동',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -713,6 +987,35 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                       child: ListTile(
                         leading: const Icon(
+                          Icons.group,
+                          color: Colors.indigoAccent,
+                        ),
+                        title: const Text(
+                          '내 팀 관리',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        trailing: const Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          size: 18,
+                          color: Colors.black54,
+                        ),
+                        onTap: () {
+                          Navigator.pop(context);
+                          context.push('/teams');
+                        },
+                      ),
+                    ),
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      decoration: AppDesign.glassDecoration.copyWith(
+                        borderRadius: BorderRadius.circular(15),
+                        color: Colors.white.withOpacity(0.4),
+                      ),
+                      child: ListTile(
+                        leading: const Icon(
                           Icons.language,
                           color: Colors.blueAccent,
                         ),
@@ -801,7 +1104,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
       // FAB for scanning
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showImageSourceActionSheet(context),
+        onPressed: () => _showTargetSelectionSheet(context),
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
         elevation: 4,

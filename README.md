@@ -40,3 +40,48 @@ flutter run -d chrome --web-browser-flag "--disable-web-security"
 - [ ] 현재 가입 시(`POST /auth/join`) 선택한 언어가 백엔드에 전송 및 연결되어 있습니다.
 - [ ] 앱 내부 사이드메뉴(Drawer)에 있는 **<언어 변경>** 컴포넌트를 누를 때, 프론트의 UI 언어만 바뀌는 상태입니다.
 - [ ] **백엔드의 사용자 정보를 수정하는 API (예: `PATCH /members/language`)** 호출이 연동되어야 합니다. 그래야 AI 메뉴판 분석 시 백엔드가 변경된 최신 언어를 기반으로 정확하게 결과를 가져올 수 있습니다.
+
+## 소개
+SafePlate는 여행지나 낯선 식당에서 **알러지·종교·비건 등 개인/팀 기피 재료를 반영해 안전한 메뉴를 추천**하는 앱입니다. 메뉴판 사진을 찍거나 갤러리에서 선택하면 AI가 텍스트를 추출·분석해 위험 재료를 표시하고, 안심하고 먹을 수 있는 메뉴를 추천해 줍니다. 팀 기능을 통해 모임 구성원의 기피 재료를 합산해 한 번에 검증할 수 있으며, 분석 기록을 리스트로 돌려보며 재주문 여부를 판단할 수 있습니다. Flutter 기반 멀티플랫폼 UI와 Spring Boot 백엔드, S3 업로드·AI 분석 연동으로 구성되어 있습니다.
+
+## 아키텍처
+```mermaid
+flowchart LR
+    subgraph Client[프론트엔드 (Flutter)]
+        UI[홈/카메라/팀 관리 UI]
+        Storage[SecureStorage\nJWT 저장]
+    end
+
+    subgraph Backend[백엔드 (Spring Boot)]
+        Auth[Auth API\n/login /join]
+        FileAPI[File API\n/presigned-url\n/files/{id}/status]
+        Menu[Restaurant Search\n/restaurant/search]
+        Team[Team API\n/teams...]
+        Hist[History API\n/histories]
+        DB[(RDS/DB)]
+    end
+
+    subgraph Infra[외부 서비스]
+        S3[(S3\n메뉴판 이미지)]
+        AI[AI 메뉴 분석\n(HF Space)]
+    end
+
+    UI -->|HTTP + JWT| Auth
+    UI -->|이미지 업로드 요청| FileAPI
+    FileAPI -->|Presigned URL| UI
+    UI -->|PUT 이미지| S3
+    UI -->|업로드 완료 PATCH| FileAPI
+    UI -->|분석 요청\n(ids, teamMemberId)| Menu
+    Menu -->|TeamMemberId로 팀 멤버 조회| Team
+    Menu -->|멤버/팀 기피재료 조회| DB
+    Menu -->|분석 요청(이미지 URL, avoid, lang)| AI
+    Menu -->|검색 결과 저장| Hist
+    UI -->|기록 조회| Hist
+    S3 -->|이미지 URL| Menu
+```
+
+요약
+- 클라이언트는 JWT를 로컬에 저장하고 모든 API 호출에 붙입니다.
+- 이미지 업로드는 Presigned URL을 받아 S3에 직접 PUT 후 상태를 PATCH로 업데이트합니다.
+- 메뉴 분석 시 `teamMemberId`를 넘기면 백엔드가 팀 전체 기피 재료를 합산하여 AI에 전달합니다.
+- 분석 결과와 업로드 이력은 백엔드 DB에 저장되고 `/histories`로 조회합니다.

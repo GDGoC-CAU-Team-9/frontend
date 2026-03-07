@@ -81,7 +81,10 @@ class MenuRepository {
 
   /// Upload image to S3 and analyze via backend (POST /restaurant/search)
   /// The backend automatically fetches user's avoid items and saves history.
-  Future<List<MenuAnalysisResult>> uploadMenuImage(XFile file) async {
+  Future<List<MenuAnalysisResult>> uploadMenuImage(
+    XFile file, {
+    int? teamMemberId,
+  }) async {
     try {
       // 1. Normalize Image (Resize & Convert to JPEG)
       developer.log(
@@ -162,14 +165,20 @@ class MenuRepository {
       // 5. Request Analysis via Backend (POST /restaurant/search)
       // Backend will: fetch avoid items, call AI, save history automatically
       developer.log(
-        'Step 4: Requesting Menu Analysis via Backend...',
+        'Step 4: Requesting Menu Analysis via Backend... (Team: $teamMemberId)',
         name: 'MenuRepository',
       );
+
+      final Map<String, dynamic> requestData = {
+        'ids': [fileId],
+      };
+      if (teamMemberId != null) {
+        requestData['teamMemberId'] = teamMemberId;
+      }
+
       final analysisResponse = await _dio.post(
         '/restaurant/search',
-        data: {
-          'ids': [fileId],
-        },
+        data: requestData,
         options: Options(
           receiveTimeout: const Duration(seconds: 120),
           sendTimeout: const Duration(seconds: 30),

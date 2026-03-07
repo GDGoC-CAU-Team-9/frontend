@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 class CameraScreen extends StatefulWidget {
-  const CameraScreen({super.key});
+  final int? teamMemberId;
+
+  const CameraScreen({super.key, this.teamMemberId});
 
   @override
   State<CameraScreen> createState() => _CameraScreenState();
@@ -80,7 +82,10 @@ class _CameraScreenState extends State<CameraScreen> {
 
       if (mounted) {
         // Return the captured XFile to the previous screen or navigate directly
-        context.pushReplacement('/analysis-loading', extra: image);
+        context.pushReplacement(
+          '/analysis-loading',
+          extra: {'imageFile': image, 'teamMemberId': widget.teamMemberId},
+        );
       }
     } catch (e) {
       _showError('Failed to capture image: $e');

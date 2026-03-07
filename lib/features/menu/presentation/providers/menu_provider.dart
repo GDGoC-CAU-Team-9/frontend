@@ -18,11 +18,14 @@ class MenuAnalysisNotifier
 
   MenuAnalysisNotifier(this._repository) : super(const AsyncValue.data([]));
 
-  Future<void> analyzeMenu(XFile file) async {
+  Future<void> analyzeMenu(XFile file, {int? teamMemberId}) async {
     state = const AsyncValue.loading();
     try {
       // Backend automatically fetches user's avoid items
-      final result = await _repository.uploadMenuImage(file);
+      final result = await _repository.uploadMenuImage(
+        file,
+        teamMemberId: teamMemberId,
+      );
       state = AsyncValue.data(result);
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
