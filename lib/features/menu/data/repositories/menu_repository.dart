@@ -3,9 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
-// import 'package:path/path.dart' as p; // Removed unused import
 import '../../../../core/network/dio_client.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart'; // Added here
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 
 // Model for Analysis Result
 class MenuAnalysisResult {
@@ -13,12 +12,16 @@ class MenuAnalysisResult {
   final int safetyScore; // 0-100
   final String reason;
   final String safetyLevel; // 'safe', 'caution', 'danger'
+  final List<String> matchedAvoid;
+  final List<String> suspectedIngredients;
 
   MenuAnalysisResult({
     required this.menuName,
     required this.safetyScore,
     required this.reason,
     required this.safetyLevel,
+    this.matchedAvoid = const [],
+    this.suspectedIngredients = const [],
   });
 
   factory MenuAnalysisResult.fromJson(Map<String, dynamic> json) {
@@ -33,9 +36,41 @@ class MenuAnalysisResult {
     return MenuAnalysisResult(
       menuName: json['menu'] ?? 'Unknown',
       safetyScore: json['score'] ?? 0,
-      reason: json['reason_ko'] ?? '',
+      reason: json['reason'] ?? json['reason_ko'] ?? '',
       safetyLevel: safetyLevel,
+      matchedAvoid:
+          (json['matched_avoid'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
+      suspectedIngredients:
+          (json['suspected_ingredients'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
     );
+  }
+}
+
+// Full search result from backend (includes best item + timings)
+class SearchResult {
+  final List<MenuAnalysisResult> items;
+  final MenuAnalysisResult? best;
+
+  SearchResult({required this.items, this.best});
+
+  factory SearchResult.fromJson(Map<String, dynamic> json) {
+    final List<dynamic> itemsJson = json['items'] ?? [];
+    final items = itemsJson
+        .map((item) => MenuAnalysisResult.fromJson(item))
+        .toList();
+
+    MenuAnalysisResult? best;
+    if (json['best'] != null) {
+      best = MenuAnalysisResult.fromJson(json['best']);
+    }
+
+    return SearchResult(items: items, best: best);
   }
 }
 
@@ -44,10 +79,9 @@ class MenuRepository {
 
   MenuRepository(this._dio);
 
-  Future<List<MenuAnalysisResult>> uploadMenuImage(
-    XFile file,
-    List<String> avoidList,
-  ) async {
+  /// Upload image to S3 and analyze via backend (POST /restaurant/search)
+  /// The backend automatically fetches user's avoid items and saves history.
+  Future<List<MenuAnalysisResult>> uploadMenuImage(XFile file) async {
     try {
       // 1. Normalize Image (Resize & Convert to JPEG)
       developer.log(
@@ -56,8 +90,6 @@ class MenuRepository {
       );
       final Uint8List originalBytes = await file.readAsBytes();
 
-      // Compress and convert to JPEG
-      // Web, Android, iOS support via compressWithList
       final Uint8List compressedBytes =
           await FlutterImageCompress.compressWithList(
             originalBytes,
@@ -67,21 +99,17 @@ class MenuRepository {
             format: CompressFormat.jpeg,
           );
 
-      const String fileExtension = 'jpeg'; // Always JPEG after conversion
+      const String fileExtension = 'jpeg';
       developer.log(
         'Image normalized. Size: ${originalBytes.length} -> ${compressedBytes.length}',
         name: 'MenuRepository',
       );
 
-      // 1. Get Presigned URL
+      // 2. Get Presigned URL
       developer.log(
         'Step 1: Requesting Presigned URL...',
         name: 'MenuRepository',
       );
-      developer.log(
-        'File Type: $fileExtension',
-        name: 'MenuRepository',
-      ); // Debug print
       final presignedResponse = await _dio.post(
         '/files/presigned-url',
         data: {'path': 'menu_board_request', 'fileType': fileExtension},
@@ -102,12 +130,9 @@ class MenuRepository {
         name: 'MenuRepository',
       );
 
-      // 2. Upload to S3 (Direct Binary Upload)
+      // 3. Upload to S3
       developer.log('Step 2: Uploading to S3...', name: 'MenuRepository');
-      // Create a separate Dio instance for S3 to avoid default interceptors (like Auth headers)
       final s3Dio = Dio();
-
-      // Use compressedBytes instead of original fileBytes
       await s3Dio.put(
         presignedUrl,
         data: compressedBytes,
@@ -120,7 +145,7 @@ class MenuRepository {
       );
       developer.log('S3 Upload Completed', name: 'MenuRepository');
 
-      // 3. Update File Status
+      // 4. Update File Status
       developer.log('Step 3: Updating File Status...', name: 'MenuRepository');
       final statusResponse = await _dio.patch(
         '/files/$fileId/status',
@@ -132,43 +157,38 @@ class MenuRepository {
           'Failed to update file status: ${statusResponse.statusCode}',
         );
       }
+      developer.log('File Status Updated', name: 'MenuRepository');
 
-      // Get the uploaded file URL from the status response
-      final String uploadedFileUrl = statusResponse.data['result']['fileUrl'];
+      // 5. Request Analysis via Backend (POST /restaurant/search)
+      // Backend will: fetch avoid items, call AI, save history automatically
       developer.log(
-        'File Status Updated. URL: $uploadedFileUrl',
+        'Step 4: Requesting Menu Analysis via Backend...',
         name: 'MenuRepository',
       );
-
-      // 4. Request Analysis (Direct AI Call)
-      developer.log(
-        'Step 4: Requesting Menu Analysis (Direct AI)...',
-        name: 'MenuRepository',
+      final analysisResponse = await _dio.post(
+        '/restaurant/search',
+        data: {
+          'ids': [fileId],
+        },
+        options: Options(
+          receiveTimeout: const Duration(seconds: 120),
+          sendTimeout: const Duration(seconds: 30),
+        ),
       );
 
-      // AI Service Endpoint
-      const aiEndpoint = 'https://hn-ui-gdg-team-9.hf.space/rank';
+      if (analysisResponse.statusCode == 200 &&
+          analysisResponse.data['isSuccess'] == true) {
+        final resultData = analysisResponse.data['result'];
+        developer.log(
+          'Backend Analysis Result: $resultData',
+          name: 'MenuRepository',
+        );
 
-      final aiDio = Dio(); // New Dio instance for external AI service
-      final analysisResponse = await aiDio.post(
-        aiEndpoint,
-        data: {'image_url': uploadedFileUrl, 'avoid': avoidList},
-        options: Options(headers: {'Content-Type': 'application/json'}),
-      );
-
-      if (analysisResponse.statusCode == 200) {
-        final data = analysisResponse.data;
-        developer.log('AI Analysis Result: $data', name: 'MenuRepository');
-
-        List<dynamic> items = [];
-        if (data is Map<String, dynamic> && data.containsKey('items')) {
-          items = data['items'];
-        }
-
-        return items.map((item) => MenuAnalysisResult.fromJson(item)).toList();
+        final searchResult = SearchResult.fromJson(resultData);
+        return searchResult.items;
       } else {
         throw Exception(
-          'Failed to analyze menu: ${analysisResponse.statusCode}',
+          'Failed to analyze menu: ${analysisResponse.data['message'] ?? analysisResponse.statusCode}',
         );
       }
     } catch (e) {

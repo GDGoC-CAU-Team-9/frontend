@@ -15,13 +15,12 @@ class SignUpScreen extends ConsumerStatefulWidget {
 
 class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  String? _selectedLanguage;
 
   @override
   void dispose() {
-    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -29,20 +28,20 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
   void _onSignUp() async {
     if (_formKey.currentState!.validate()) {
+      final language = _selectedLanguage ?? context.locale.languageCode;
       await ref
           .read(authProvider.notifier)
-          .signUp(
-            _nameController.text,
-            _emailController.text,
-            _passwordController.text,
-          );
+          .signUp(_emailController.text, _passwordController.text, language);
 
       if (mounted && !ref.read(authProvider).hasError) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('회원가입 성공! 로그인해주세요.')));
-          context.pop(); // Go back to login
+          await context.setLocale(Locale(language));
+          if (mounted) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text('회원가입 성공! 로그인해주세요.')));
+            context.pop(); // Go back to login
+          }
         }
       }
     }
@@ -111,22 +110,6 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         TextFormField(
-                          controller: _nameController,
-                          decoration: InputDecoration(
-                            labelText: '이름',
-                            prefixIcon: const Icon(Icons.person),
-                            filled: true,
-                            fillColor: Colors.white54,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                          ),
-                          validator: (value) =>
-                              value!.isEmpty ? '이름을 입력해주세요' : null,
-                        ),
-                        const SizedBox(height: 16),
-                        TextFormField(
                           controller: _emailController,
                           decoration: InputDecoration(
                             labelText: '이메일',
@@ -161,14 +144,21 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                         ),
                         const SizedBox(height: 16),
                         DropdownButtonFormField<String>(
-                          value: context.locale.languageCode,
+                          value:
+                              _selectedLanguage ?? context.locale.languageCode,
                           items: AppConstants.supportedLanguages.map((lang) {
                             return DropdownMenuItem<String>(
                               value: lang['code'],
                               child: Text(tr('language.${lang['code']}')),
                             );
                           }).toList(),
-                          onChanged: null,
+                          onChanged: (value) {
+                            if (value != null) {
+                              setState(() {
+                                _selectedLanguage = value;
+                              });
+                            }
+                          },
                           decoration: InputDecoration(
                             labelText: tr('signup.language_label'),
                             prefixIcon: const Icon(Icons.language),

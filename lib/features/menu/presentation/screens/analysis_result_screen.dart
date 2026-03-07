@@ -18,9 +18,47 @@ class AnalysisResultScreen extends ConsumerStatefulWidget {
 }
 
 class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen> {
-  @override
-  void initState() {
-    super.initState();
+  void _showFullImage(BuildContext context, String imagePath) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: EdgeInsets.zero,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Container(color: Colors.black87),
+            ),
+            InteractiveViewer(
+              minScale: 0.5,
+              maxScale: 4.0,
+              child: Center(
+                child: kIsWeb
+                    ? Image.network(imagePath, fit: BoxFit.contain)
+                    : Image.file(File(imagePath), fit: BoxFit.contain),
+              ),
+            ),
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 8,
+              right: 16,
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.3),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.close, color: Colors.white, size: 24),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Color _getScoreColor(String safetyLevel) {
@@ -41,85 +79,92 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen> {
     final analysisState = ref.watch(menuAnalysisProvider);
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        title: const Text(
-          '분석 결과',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.5),
-              shape: BoxShape.circle,
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new, size: 18),
-              color: Colors.black87,
-              onPressed: () => context.pop(),
+      body: Container(
+        decoration: const BoxDecoration(gradient: AppDesign.backgroundGradient),
+        child: analysisState.when(
+          loading: () => const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('AI가 메뉴판을 분석 중입니다...'),
+              ],
             ),
           ),
-        ),
-      ),
-      body: Stack(
-        children: [
-          // Background Gradient
-          Container(
-            decoration: const BoxDecoration(
-              gradient: AppDesign.backgroundGradient,
-            ),
-          ),
-          Column(
-            children: [
-              // Display the scanned image thumbnail with blur header effect maybe?
-              // For now just top padding to avoid AppBar overlap if not using Sliver
-              // Actually, let's keep it simple.
-              SizedBox(
-                height: kToolbarHeight + MediaQuery.of(context).padding.top,
-              ),
-
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(15),
-                  child: SizedBox(
-                    height: 200,
-                    width: double.infinity,
-                    child: kIsWeb
-                        ? Image.network(widget.imagePath, fit: BoxFit.cover)
-                        : Image.file(File(widget.imagePath), fit: BoxFit.cover),
-                  ),
-                ),
-              ),
-
-              Expanded(
-                child: analysisState.when(
-                  loading: () => const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        CircularProgressIndicator(),
-                        SizedBox(height: 16),
-                        Text('AI가 메뉴판을 분석 중입니다...'),
-                      ],
+          error: (err, stack) => Center(child: Text('오류 발생: $err')),
+          data: (results) {
+            return CustomScrollView(
+              slivers: [
+                // Collapsible image header
+                SliverAppBar(
+                  expandedHeight: 300,
+                  collapsedHeight: 60,
+                  pinned: true,
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  leading: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.5),
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back_ios_new, size: 18),
+                        color: Colors.black87,
+                        onPressed: () => context.pop(),
+                      ),
                     ),
                   ),
-                  error: (err, stack) => Center(child: Text('오류 발생: $err')),
-                  data: (results) {
-                    if (results.isEmpty) {
-                      return const Center(child: Text('분석된 메뉴가 없습니다.'));
-                    }
-                    return ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: results.length,
-                      itemBuilder: (context, index) {
+                  title: const Text(
+                    '분석 결과',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  centerTitle: true,
+                  flexibleSpace: FlexibleSpaceBar(
+                    background: Padding(
+                      padding: EdgeInsets.only(
+                        top:
+                            MediaQuery.of(context).padding.top + kToolbarHeight,
+                        left: 16,
+                        right: 16,
+                        bottom: 8,
+                      ),
+                      child: GestureDetector(
+                        onTap: () => _showFullImage(context, widget.imagePath),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(15),
+                          child: kIsWeb
+                              ? Image.network(
+                                  widget.imagePath,
+                                  fit: BoxFit.cover,
+                                )
+                              : Image.file(
+                                  File(widget.imagePath),
+                                  fit: BoxFit.cover,
+                                ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                // Results list
+                if (results.isEmpty)
+                  const SliverFillRemaining(
+                    child: Center(child: Text('분석된 메뉴가 없습니다.')),
+                  )
+                else
+                  SliverPadding(
+                    padding: const EdgeInsets.all(16),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate((context, index) {
                         final item = results[index];
                         return Container(
-                          // Replaced Card with Glass Container
                           margin: const EdgeInsets.only(bottom: 16),
                           padding: const EdgeInsets.all(16),
                           decoration: AppDesign.glassDecoration,
@@ -130,12 +175,14 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen> {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
-                                    item.menuName,
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black87,
+                                  Expanded(
+                                    child: Text(
+                                      item.menuName,
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
+                                      ),
                                     ),
                                   ),
                                   Container(
@@ -170,14 +217,13 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen> {
                             ],
                           ),
                         );
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ],
+                      }, childCount: results.length),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
