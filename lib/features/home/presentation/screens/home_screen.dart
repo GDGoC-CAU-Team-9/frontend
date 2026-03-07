@@ -5,25 +5,39 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../history/presentation/providers/history_provider.dart';
+import '../../../history/data/repositories/history_repository.dart';
 import '../../../../core/theme/app_design.dart';
 import '../../../../core/constants/app_constants.dart';
 import 'package:image_picker/image_picker.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen> {
   final ImagePicker _picker = ImagePicker();
 
+  @override
+  void initState() {
+    super.initState();
+    // Load history on first open
+    Future.microtask(() {
+      ref.read(historyListProvider.notifier).loadInitial();
+    });
+  }
+
   Future<void> _pickImage(ImageSource source) async {
-    // If Web and Camera, use custom CameraScreen
     if (kIsWeb && source == ImageSource.camera) {
       if (mounted) {
-        context.push('/camera'); // Navigate to custom camera screen
+        await context.push('/camera');
+        // Refresh history when returning from camera flow
+        if (mounted) {
+          ref.read(historyListProvider.notifier).refresh();
+        }
       }
       return;
     }
@@ -32,8 +46,11 @@ class _HomeScreenState extends State<HomeScreen> {
       final XFile? image = await _picker.pickImage(source: source);
       if (image != null) {
         if (mounted) {
-          // Navigate to analysis result
-          context.push('/analysis-loading', extra: image);
+          await context.push('/analysis-loading', extra: image);
+          // Refresh history when returning from analysis
+          if (mounted) {
+            ref.read(historyListProvider.notifier).refresh();
+          }
         }
       }
     } catch (e) {
@@ -48,16 +65,15 @@ class _HomeScreenState extends State<HomeScreen> {
   void _showImageSourceActionSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent, // Transparent background
+      backgroundColor: Colors.transparent,
       builder: (context) => BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5), // Blur behind
+        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
         child: Container(
           padding: const EdgeInsets.all(24),
           decoration: const BoxDecoration(color: Colors.transparent),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Header Indicator
               Container(
                 width: 40,
                 height: 5,
@@ -67,8 +83,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-
-              // Camera Button
               _buildImageSourceButton(
                 context,
                 icon: Icons.camera_alt_rounded,
@@ -80,8 +94,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               ),
               const SizedBox(height: 16),
-
-              // Gallery Button
               _buildImageSourceButton(
                 context,
                 icon: Icons.photo_library_rounded,
@@ -113,9 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
         decoration: AppDesign.glassDecoration.copyWith(
-          color: Colors.white.withOpacity(
-            0.85,
-          ), // Slightly more opaque for visibility
+          color: Colors.white.withOpacity(0.85),
           borderRadius: BorderRadius.circular(25),
         ),
         child: Row(
@@ -154,21 +164,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent, // Transparent background
+      backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (context) => BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5), // Blur behind
+        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
         child: SafeArea(
           child: SingleChildScrollView(
             child: Container(
               padding: const EdgeInsets.all(24),
-              decoration: const BoxDecoration(
-                color: Colors.transparent,
-              ), // Glassmorphism container
+              decoration: const BoxDecoration(color: Colors.transparent),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Header Indicator
                   Container(
                     width: 40,
                     height: 5,
@@ -187,7 +194,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  // Language Grid or List
                   Container(
                     decoration: AppDesign.glassDecoration.copyWith(
                       color: Colors.white.withOpacity(0.6),
@@ -226,7 +232,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 )
                               : null,
                           onTap: () async {
-                            Navigator.pop(context); // Close bottom sheet
+                            Navigator.pop(context);
                             if (!isSelected) {
                               await context.setLocale(Locale(lang['code']!));
                               if (context.mounted) {
@@ -261,10 +267,329 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // ── History list body ──
+  Widget _buildHistoryList(HistoryListState historyState) {
+    // Error state
+    if (historyState.errorMessage != null && historyState.items.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 48, color: Colors.grey.shade400),
+            const SizedBox(height: 16),
+            Text(
+              '기록을 불러오지 못했습니다.',
+              style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: () =>
+                  ref.read(historyListProvider.notifier).loadInitial(),
+              icon: const Icon(Icons.refresh),
+              label: const Text('다시 시도'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.teal,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Loading (first load)
+    if (historyState.isLoading && historyState.items.isEmpty) {
+      return const Center(child: CircularProgressIndicator(color: Colors.teal));
+    }
+
+    // Empty state
+    if (!historyState.isLoading && historyState.items.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(30),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.5),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.restaurant_menu,
+                size: 80,
+                color: Colors.teal.shade300,
+              ),
+            ),
+            const SizedBox(height: 32),
+            const Text(
+              '메뉴판을 촬영하여\n안전한 음식을 찾아보세요!',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'AI가 기피 재료를 분석해 드립니다.',
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+            ),
+            const SizedBox(height: 32),
+            Text(
+              '우측 하단의 + 버튼을 눌러 시작하세요',
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // History list
+    return RefreshIndicator(
+      onRefresh: () => ref.read(historyListProvider.notifier).refresh(),
+      color: Colors.teal,
+      child: CustomScrollView(
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
+            sliver: SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                mainAxisExtent:
+                    240, // Reduced overall height to make white area smaller
+              ),
+              delegate: SliverChildBuilderDelegate((context, index) {
+                final item = historyState.items[index];
+                return _buildHistoryCard(item);
+              }, childCount: historyState.items.length),
+            ),
+          ),
+          if (historyState.hasMore)
+            SliverToBoxAdapter(
+              child: Builder(
+                builder: (context) {
+                  if (!historyState.isLoading) {
+                    Future.microtask(
+                      () => ref.read(historyListProvider.notifier).loadMore(),
+                    );
+                  }
+                  return const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Center(
+                      child: CircularProgressIndicator(color: Colors.teal),
+                    ),
+                  );
+                },
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHistoryCard(HistoryItem item) {
+    final dateStr = _formatDate(item.createdAt);
+    final menuCount = item.items.length;
+    final safeCount = item.items.where((m) => m.safetyLevel == 'safe').length;
+    final dangerCount = item.items
+        .where((m) => m.safetyLevel == 'danger')
+        .length;
+
+    return GestureDetector(
+      onTap: () {
+        context.push('/history-detail', extra: item);
+      },
+      child: Container(
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white.withOpacity(0.4)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 15,
+              spreadRadius: 2,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Full background image
+            if (item.imageUrls.isNotEmpty)
+              Image.network(
+                item.imageUrls.first,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  color: Colors.grey.shade200,
+                  child: const Center(
+                    child: Icon(
+                      Icons.image_not_supported,
+                      size: 40,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+              )
+            else
+              Container(
+                color: Colors.teal.shade50,
+                child: Center(
+                  child: Icon(
+                    Icons.restaurant_menu,
+                    size: 40,
+                    color: Colors.teal.shade200,
+                  ),
+                ),
+              ),
+
+            // Information overlay with Glassmorphism
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: ClipRRect(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(
+                    sigmaX: 6,
+                    sigmaY: 6,
+                  ), // Balanced blur
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(
+                        0.6,
+                      ), // Balanced transparency
+                      border: Border(
+                        top: BorderSide(color: Colors.white.withOpacity(0.4)),
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Date
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.access_time,
+                              size: 14,
+                              color: Colors.black54,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              dateStr,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: Colors.black54,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+
+                        // Summary chips
+                        Wrap(
+                          spacing: 4,
+                          runSpacing: 4,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            // Best item recommendation
+                            if (item.best != null)
+                              _buildSummaryChip(
+                                icon: Icons.thumb_up_alt_outlined,
+                                label: '추천: ${item.best!.menuName}',
+                                color: Colors.teal.shade700,
+                              ),
+                            _buildSummaryChip(
+                              icon: Icons.restaurant_menu,
+                              label: '$menuCount개',
+                              color: Colors.teal.shade700,
+                            ),
+                            if (safeCount > 0)
+                              _buildSummaryChip(
+                                icon: Icons.check_circle_outline,
+                                label: '안전 $safeCount',
+                                color: Colors.green.shade800,
+                              ),
+                            if (dangerCount > 0)
+                              _buildSummaryChip(
+                                icon: Icons.warning_amber_rounded,
+                                label: '위험 $dangerCount',
+                                color: Colors.red.shade800,
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSummaryChip({
+    required IconData icon,
+    required String label,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: color),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final diff = now.difference(date);
+
+    if (diff.inMinutes < 1) return '방금 전';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}분 전';
+    if (diff.inHours < 24) return '${diff.inHours}시간 전';
+    if (diff.inDays < 7) return '${diff.inDays}일 전';
+
+    return '${date.year}.${date.month.toString().padLeft(2, '0')}.${date.day.toString().padLeft(2, '0')}';
+  }
+
   @override
   Widget build(BuildContext context) {
+    final historyState = ref.watch(historyListProvider);
+
     return Scaffold(
-      extendBodyBehindAppBar: true, // Allow body to extend behind AppBar
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: const Text(
           'SafePlate',
@@ -282,7 +607,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 shape: BoxShape.circle,
               ),
               child: IconButton(
-                icon: const Icon(Icons.menu, size: 24), // Explicit Menu Icon
+                icon: const Icon(Icons.menu, size: 24),
                 color: Colors.black87,
                 onPressed: () => Scaffold.of(context).openDrawer(),
               ),
@@ -291,7 +616,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       drawer: Drawer(
-        elevation: 0, // Remove default shadow for a cleaner look
+        elevation: 0,
         child: Container(
           decoration: const BoxDecoration(
             gradient: AppDesign.backgroundGradient,
@@ -300,9 +625,7 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: EdgeInsets.zero,
             children: [
               DrawerHeader(
-                decoration: const BoxDecoration(
-                  color: Colors.transparent, // Transparent to show gradient
-                ),
+                decoration: const BoxDecoration(color: Colors.transparent),
                 child: Consumer(
                   builder: (context, ref, child) {
                     final authState = ref.watch(authProvider);
@@ -406,7 +729,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: Colors.black54,
                         ),
                         onTap: () {
-                          Navigator.pop(context); // Close Drawer
+                          Navigator.pop(context);
                           _showLanguageSelectionBottomSheet(context);
                         },
                       ),
@@ -430,7 +753,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         onTap: () {
-                          // TODO: Implement Logout Logic
                           Navigator.pop(context);
                           context.go('/login');
                         },
@@ -444,65 +766,49 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       body: Container(
-        // Gradient Background
         decoration: const BoxDecoration(gradient: AppDesign.backgroundGradient),
-        child: Center(
+        child: SafeArea(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Icon or Illustration
-              Container(
-                padding: const EdgeInsets.all(30),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.5),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.restaurant_menu,
-                  size: 80,
-                  color: Colors.teal.shade300,
-                ),
-              ),
-              const SizedBox(height: 32),
-              const Text(
-                '메뉴판을 촬영하여\n안전한 음식을 찾아보세요!',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'AI가 기피 재료를 분석해 드립니다.',
-                style: TextStyle(fontSize: 16, color: Colors.grey),
-              ),
-              const SizedBox(height: 48),
-
-              // Main Action Button
-              ElevatedButton.icon(
-                onPressed: () => _showImageSourceActionSheet(context),
-                icon: const Icon(Icons.search, size: 28),
-                label: const Text(
-                  '메뉴판 검사하기',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 40,
-                    vertical: 20,
+              // Section header when there's history
+              if (historyState.items.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.history,
+                        size: 20,
+                        color: Colors.grey.shade600,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '분석 기록',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade700,
+                        ),
+                      ),
+                    ],
                   ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  elevation: 5,
                 ),
-              ),
+              // Main content
+              Expanded(child: _buildHistoryList(historyState)),
             ],
           ),
+        ),
+      ),
+      // FAB for scanning
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showImageSourceActionSheet(context),
+        backgroundColor: Colors.teal,
+        foregroundColor: Colors.white,
+        elevation: 4,
+        icon: const Icon(Icons.document_scanner_rounded),
+        label: const Text(
+          '검사하기',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
         ),
       ),
     );

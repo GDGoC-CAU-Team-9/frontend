@@ -89,18 +89,18 @@ class AuthRepository {
   }
 
   Future<void> signUp({
-    required String name,
     required String email,
     required String password,
+    required String language,
   }) async {
     try {
       await _dio.post(
         '/auth/join',
-        data: {'name': name, 'email': email, 'password': password},
+        data: {'email': email, 'password': password, 'language': language},
       );
       // TODO: Handle response
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 }

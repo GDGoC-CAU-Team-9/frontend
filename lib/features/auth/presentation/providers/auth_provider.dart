@@ -23,11 +23,14 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
     });
   }
 
-  Future<void> signUp(String name, String email, String password) async {
+  Future<void> signUp(String email, String password, String language) async {
     state = const AsyncValue.loading();
     await AsyncValue.guard(
-      () =>
-          _authRepository.signUp(name: name, email: email, password: password),
+      () => _authRepository.signUp(
+        email: email,
+        password: password,
+        language: language,
+      ),
     );
     // After signup, we might want to auto-login or just return to login screen
     // For now, setting state to data(null) to indicate success but no user yet
