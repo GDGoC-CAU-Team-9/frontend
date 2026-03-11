@@ -25,16 +25,21 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
 
   Future<void> signUp(String email, String password, String language) async {
     state = const AsyncValue.loading();
-    await AsyncValue.guard(
-      () => _authRepository.signUp(
+    state = await AsyncValue.guard<User?>(() async {
+      await _authRepository.signUp(
         email: email,
         password: password,
         language: language,
-      ),
-    );
-    // After signup, we might want to auto-login or just return to login screen
-    // For now, setting state to data(null) to indicate success but no user yet
-    if (!state.hasError) {
+      );
+      return null;
+    });
+  }
+
+  Future<void> logout() async {
+    try {
+      await _authRepository.logout();
+    } finally {
+      // Always clear local auth state even if storage cleanup fails.
       state = const AsyncValue.data(null);
     }
   }

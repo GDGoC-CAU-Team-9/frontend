@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:dio/dio.dart';
 import '../providers/auth_provider.dart';
 import '../../../../core/theme/app_design.dart';
 import '../../../../core/constants/app_constants.dart';
@@ -52,9 +53,10 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     ref.listen(authProvider, (previous, next) {
       next.whenOrNull(
         error: (error, stack) {
+          final message = _toUserMessage(error, fallback: '회원가입에 실패했습니다.');
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('회원가입 실패: $error')));
+          ).showSnackBar(SnackBar(content: Text('회원가입 실패: $message')));
         },
       );
     });
@@ -206,5 +208,29 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
         ),
       ),
     );
+  }
+
+  String _toUserMessage(Object error, {required String fallback}) {
+    if (error is DioException) {
+      final data = error.response?.data;
+      if (data is Map) {
+        final message = data['message']?.toString();
+        if (message != null && message.trim().isNotEmpty) {
+          return message.trim();
+        }
+
+        final result = data['result'];
+        if (result is String && result.trim().isNotEmpty) {
+          return result.trim();
+        }
+      }
+
+      final message = error.message;
+      if (message != null && message.trim().isNotEmpty) {
+        return message.trim();
+      }
+    }
+
+    return fallback;
   }
 }

@@ -1055,9 +1055,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             color: Colors.redAccent,
                           ),
                         ),
-                        onTap: () {
+                        onTap: () async {
                           Navigator.pop(context);
-                          context.go('/login');
+                          await ref.read(authProvider.notifier).logout();
+                          if (mounted) {
+                            context.go('/login');
+                          }
                         },
                       ),
                     ),
