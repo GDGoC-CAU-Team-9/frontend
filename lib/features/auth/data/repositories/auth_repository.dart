@@ -148,6 +148,46 @@ class AuthRepository {
     }
   }
 
+  Future<void> updateLanguage(String language) async {
+    try {
+      final response = await _dio.patch(
+        '/members/language',
+        data: {'language': language},
+        options: Options(
+          contentType: Headers.jsonContentType,
+          validateStatus: (status) {
+            return status != null && status < 600;
+          },
+        ),
+      );
+
+      final responseMessage = _extractServerMessage(response.data);
+
+      if (response.data is Map && response.data['isSuccess'] == false) {
+        throw DioException(
+          requestOptions: response.requestOptions,
+          response: response,
+          type: DioExceptionType.badResponse,
+          message: responseMessage ?? '언어 변경 실패',
+        );
+      }
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        return;
+      }
+
+      throw DioException(
+        requestOptions: response.requestOptions,
+        response: response,
+        type: DioExceptionType.badResponse,
+        message:
+            responseMessage ?? '언어 변경 실패: ${response.statusCode ?? '알 수 없는 오류'}',
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<void> logout() async {
     await _storage.delete(key: 'accessToken');
   }

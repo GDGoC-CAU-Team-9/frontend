@@ -1,10 +1,12 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../auth/data/repositories/auth_repository.dart';
 import '../../../history/presentation/providers/history_provider.dart';
 import '../../../history/data/repositories/history_repository.dart';
 import '../../../team/presentation/providers/team_provider.dart';
@@ -508,21 +510,38 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           onTap: () async {
                             Navigator.pop(context);
                             if (!isSelected) {
-                              await context.setLocale(Locale(lang['code']!));
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      tr(
-                                        'language_changed',
-                                        namedArgs: {
-                                          'lang': tr(
-                                            'language.${lang['code']}',
-                                          ),
-                                        },
+                              try {
+                                await ref
+                                    .read(authRepositoryProvider)
+                                    .updateLanguage(lang['code']!);
+
+                                if (!mounted) return;
+
+                                await context.setLocale(Locale(lang['code']!));
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        tr(
+                                          'language_changed',
+                                          namedArgs: {
+                                            'lang': tr(
+                                              'language.${lang['code']}',
+                                            ),
+                                          },
+                                        ),
                                       ),
                                     ),
-                                  ),
+                                  );
+                                }
+                              } catch (e) {
+                                if (!mounted) return;
+                                final message = _toUserMessage(
+                                  e,
+                                  fallback: '언어 변경에 실패했습니다. 다시 시도해주세요.',
+                                );
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(message)),
                                 );
                               }
                             }
@@ -856,6 +875,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     if (diff.inDays < 7) return '${diff.inDays}일 전';
 
     return '${date.year}.${date.month.toString().padLeft(2, '0')}.${date.day.toString().padLeft(2, '0')}';
+  }
+
+  String _toUserMessage(Object error, {required String fallback}) {
+    if (error is DioException) {
+      final data = error.response?.data;
+      if (data is Map) {
+        final message = data['message']?.toString();
+        if (message != null && message.trim().isNotEmpty) {
+          return message.trim();
+        }
+
+        final result = data['result'];
+        if (result is String && result.trim().isNotEmpty) {
+          return result.trim();
+        }
+      }
+
+      final message = error.message;
+      if (message != null && message.trim().isNotEmpty) {
+        return message.trim();
+      }
+    }
+
+    return fallback;
   }
 
   @override

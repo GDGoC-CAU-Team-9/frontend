@@ -57,7 +57,7 @@ flutter run -d chrome --web-browser-flag "--disable-web-security"
   - 에러 메시지 표시 + 복귀 버튼(홈 이동) 제공
 
 ### P1 (핵심 기능 완성)
-- [ ] 언어 변경 백엔드 연동
+- [x] 언어 변경 백엔드 연동
   - FE 언어 선택 시 사용자 언어 변경 API 호출
   - 성공 시 로컬 locale + 서버 저장 언어 동기화
 - [ ] 히스토리 삭제 API 연동
