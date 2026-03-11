@@ -60,7 +60,7 @@ flutter run -d chrome --web-browser-flag "--disable-web-security"
 - [x] 언어 변경 백엔드 연동
   - FE 언어 선택 시 사용자 언어 변경 API 호출
   - 성공 시 로컬 locale + 서버 저장 언어 동기화
-- [ ] 히스토리 삭제 API 연동
+- [x] 히스토리 삭제 API 연동
   - 개별 삭제(`DELETE /histories/{id}`) 또는 전체 삭제 API 연결
   - 홈 기록 카드 삭제 UX(휴지통/스와이프) 반영
 - [ ] 인증 가드/자동 로그인 흐름 보강
