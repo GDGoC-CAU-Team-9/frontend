@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/signup_screen.dart';
+import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/allergy/presentation/screens/allergy_selection_screen.dart';
 import '../../features/avoid_item/presentation/screens/avoid_input_screen.dart';
 import '../../features/avoid_item/presentation/screens/avoid_list_screen.dart';
@@ -18,9 +20,33 @@ import '../../features/team/presentation/screens/team_list_screen.dart';
 import '../../features/team/presentation/screens/team_detail_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
+  final authState = ref.watch(authProvider);
+  final isAuthLoading = authState.isLoading;
+  final isAuthenticated = authState.valueOrNull != null;
+
   return GoRouter(
-    initialLocation: '/login',
+    initialLocation: '/splash',
+    redirect: (context, state) {
+      final location = state.matchedLocation;
+      final isSplashRoute = location == '/splash';
+      final isAuthRoute = location == '/login' || location == '/signup';
+
+      if (isAuthLoading) {
+        return isSplashRoute ? null : '/splash';
+      }
+
+      if (!isAuthenticated) {
+        return isAuthRoute ? null : '/login';
+      }
+
+      if (isSplashRoute || isAuthRoute) {
+        return '/home';
+      }
+
+      return null;
+    },
     routes: [
+      GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(
         path: '/signup',

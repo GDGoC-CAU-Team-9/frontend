@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -11,6 +12,8 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 class AuthRepository {
   final Dio _dio;
   final _storage = const FlutterSecureStorage();
+  static const _tokenKey = 'accessToken';
+  static const _emailKey = 'userEmail';
 
   AuthRepository(this._dio);
 
@@ -51,13 +54,6 @@ class AuthRepository {
         }
       }
 
-      if (token != null) {
-        print('Token found: $token');
-        await _storage.write(key: 'accessToken', value: token);
-      } else {
-        print('Warning: No token found in response');
-      }
-
       final responseMessage = _extractServerMessage(response.data);
 
       if (response.data is Map && response.data['isSuccess'] == false) {
@@ -70,6 +66,17 @@ class AuthRepository {
       }
 
       if (response.statusCode == 200) {
+        if (token == null || token.isEmpty) {
+          throw DioException(
+            requestOptions: response.requestOptions,
+            response: response,
+            type: DioExceptionType.badResponse,
+            message: '로그인 응답에 토큰이 없습니다.',
+          );
+        }
+        print('Token found: $token');
+        await _storage.write(key: _tokenKey, value: token);
+        await _storage.write(key: _emailKey, value: email);
         return;
       } else if (response.statusCode == 401) {
         throw DioException(
@@ -189,7 +196,26 @@ class AuthRepository {
   }
 
   Future<void> logout() async {
-    await _storage.delete(key: 'accessToken');
+    await _storage.delete(key: _tokenKey);
+    await _storage.delete(key: _emailKey);
+  }
+
+  Future<String?> getStoredEmail() async {
+    return _storage.read(key: _emailKey);
+  }
+
+  Future<bool> hasActiveSession() async {
+    final token = await _storage.read(key: _tokenKey);
+    if (token == null || token.isEmpty) {
+      return false;
+    }
+
+    if (_isTokenExpired(token)) {
+      await logout();
+      return false;
+    }
+
+    return true;
   }
 
   String? _extractServerMessage(dynamic data) {
@@ -206,5 +232,30 @@ class AuthRepository {
     }
 
     return null;
+  }
+
+  bool _isTokenExpired(String token) {
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) return false;
+
+      final payload = parts[1];
+      final normalized = base64Url.normalize(payload);
+      final decoded = utf8.decode(base64Url.decode(normalized));
+      final map = jsonDecode(decoded);
+      if (map is! Map<String, dynamic>) return false;
+
+      final exp = map['exp'];
+      if (exp is! num) return false;
+
+      final expiry = DateTime.fromMillisecondsSinceEpoch(
+        exp.toInt() * 1000,
+        isUtc: true,
+      );
+      return DateTime.now().toUtc().isAfter(expiry);
+    } catch (_) {
+      // If token parsing fails, don't force logout here.
+      return false;
+    }
   }
 }

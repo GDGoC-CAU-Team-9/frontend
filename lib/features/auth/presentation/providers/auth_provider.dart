@@ -12,7 +12,29 @@ final authProvider = StateNotifierProvider<AuthNotifier, AsyncValue<User?>>((
 class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
   final AuthRepository _authRepository;
 
-  AuthNotifier(this._authRepository) : super(const AsyncValue.data(null));
+  AuthNotifier(this._authRepository) : super(const AsyncValue.loading()) {
+    restoreSession();
+  }
+
+  Future<void> restoreSession() async {
+    state = const AsyncValue.loading();
+    try {
+      final hasSession = await _authRepository.hasActiveSession();
+      if (!hasSession) {
+        state = const AsyncValue.data(null);
+        return;
+      }
+
+      final savedEmail = await _authRepository.getStoredEmail();
+      final email = (savedEmail == null || savedEmail.trim().isEmpty)
+          ? 'user@safeplate.local'
+          : savedEmail;
+      state = AsyncValue.data(User(id: 'local', email: email, name: '사용자'));
+    } catch (_) {
+      // Fall back to logged-out state if local session restore fails.
+      state = const AsyncValue.data(null);
+    }
+  }
 
   Future<void> login(String email, String password) async {
     state = const AsyncValue.loading();

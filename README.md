@@ -46,13 +46,13 @@ flutter run -d chrome --web-browser-flag "--disable-web-security"
 ## ✅ 개발 우선순위 TODO (2026-03-11)
 
 ### P0 (필수)
-- [ ] 회원가입 에러 처리 버그 수정
+- [x] 회원가입 에러 처리 버그 수정
   - `auth_provider`에서 `AsyncValue.guard` 반환값을 `state`에 정확히 반영
   - `auth_repository.signUp`에서 `statusCode`/`isSuccess` 검증 후 실패 시 예외 처리
-- [ ] 로그아웃 시 `accessToken` 삭제 + 인증 상태 초기화
+- [x] 로그아웃 시 `accessToken` 삭제 + 인증 상태 초기화
   - Secure Storage 토큰 삭제
   - 인증 상태(`authProvider`) 초기화 후 로그인 화면 이동
-- [ ] 분석 로딩 화면 실패 핸들링
+- [x] 분석 로딩 화면 실패 핸들링
   - `menuAnalysisProvider` 에러 상태 감지
   - 에러 메시지 표시 + 복귀 버튼(홈 이동) 제공
 
@@ -63,7 +63,7 @@ flutter run -d chrome --web-browser-flag "--disable-web-security"
 - [x] 히스토리 삭제 API 연동
   - 개별 삭제(`DELETE /histories/{id}`) 또는 전체 삭제 API 연결
   - 홈 기록 카드 삭제 UX(휴지통/스와이프) 반영
-- [ ] 인증 가드/자동 로그인 흐름 보강
+- [x] 인증 가드/자동 로그인 흐름 보강
   - 앱 시작 시 토큰 유무 점검 후 초기 라우팅
   - 비인증 상태에서 보호 라우트 접근 차단
 
