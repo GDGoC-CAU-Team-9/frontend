@@ -1,162 +1,111 @@
-# SafePlate
-여행중에 언어와 문화, 소통이 어려운 상황에서, 사용자의 알러지, 종교, 질병을 고려해, 안전한 식당을 추천하는 서비스
+# SafePlate Specification (Frontend)
 
-## 화면 구현
-### 로그인 화면 (초기화면)
-로그인 시에 아래 정보 입력
-- 이메일
-- 비밀번호
+작성 기준일: 2026-03-12
 
-#### 버튼
-- 로그인 버튼
-- 회원가입 버튼
+## 1) 서비스 목표
 
-### 회원가입 화면
-회원가입시에 아래 정보 3개 입력
-- 이름
-- 이메일
-- 비밀번호
+SafePlate는 메뉴판 이미지를 분석해 사용자(또는 팀)의 기피 재료 기준으로 메뉴 위험도를 보여주는 앱이다.  
+현재 프론트의 핵심 범위는 아래 4가지다.
 
-#### 버튼
-- 회원가입 버튼
+- JWT 기반 인증(로그인/회원가입/자동 로그인)
+- 자연어 기반 기피재료 관리(텍스트 입력 -> AI 추출 -> 저장)
+- 이미지 업로드 + 메뉴 분석 결과 조회
+- 분석 히스토리/팀 관리
 
-### 사용자 프로필 (기피 재료) 기록 화면
+---
 
-- 알러지
-    - 체크리스트 (DB에서 현재 저장된 알러지 리스트 가져오도록 하면 될듯)
+## 2) 현재 라우트/화면 구조
 
-- 종교
-    - 체크리스트 (현재 미구현)
+| Route | 화면 | 상태 | 비고 |
+|---|---|---|---|
+| `/splash` | 스플래시 | 사용 중 | 세션 복원 중 로딩 |
+| `/login` | 로그인 | 사용 중 | 인증 실패 메시지 노출 |
+| `/signup` | 회원가입 | 사용 중 | 언어(language) 포함 가입 |
+| `/home` | 홈/히스토리 | 사용 중 | 분석 진입, 히스토리 삭제, Drawer 기능 |
+| `/profile` | 프로필 관리 | 사용 중 | 기피재료 입력/목록 화면 진입 |
+| `/profile/avoid-input` | 기피재료 입력 | 사용 중 | 자연어 입력 후 AI 추출 |
+| `/profile/avoid-list` | 기피재료 목록 | 사용 중 | 삭제 가능 |
+| `/analysis-loading` | 분석 로딩 | 사용 중 | 실패 시 에러 카드 + 복귀 버튼 |
+| `/analysis-result` | 분석 결과 | 사용 중 | 메뉴별 안전도/사유 표시 |
+| `/camera` | 웹 카메라 | 사용 중 | Web 카메라 촬영 |
+| `/history-detail` | 기록 상세 | 사용 중 | 개별 기록 상세 |
+| `/teams` | 팀 목록 | 사용 중 | 생성/참여/조회 진입 |
+| `/teams/:teamMemberId` | 팀 상세 | 사용 중 | 팀 상세/수정/나가기 |
 
-- 질병
-    - 체크리스트 (현재 미구현)
+---
 
-- 개인적 기호 및 회피 식재료
-    - 체크리스트 (현재 미구현)
+## 3) 핵심 플로우
 
-### 사용자 프로필 조회 화면
+### 3-1. 인증/세션 복원
+1. 앱 시작 시 `authProvider.restoreSession()` 실행
+2. Secure Storage의 `accessToken` 존재/만료 확인
+3. 유효 세션이면 `/home`, 아니면 `/login` 이동
+4. 로그아웃 시 토큰/이메일 삭제 + 인증 상태 초기화
 
-- 기피 재료 목록
-- 수정 → 삭제 및 추가
+### 3-2. 기피재료 관리(자연어 기반)
+1. `/profile/avoid-input`에서 자유 텍스트 입력
+2. `POST /avoid-items/my/search`로 AI 추출 요청
+3. 추출된 태그를 사용자가 조정(토글)
+4. `PUT /avoid-items/my`로 최종 저장
+5. `/profile/avoid-list`에서 전체 목록 조회/삭제
 
-### 검색 화면
+### 3-3. 메뉴판 분석
+1. 홈에서 개인/팀 기준 선택 후 이미지 촬영/선택
+2. `POST /files/presigned-url`로 업로드 URL 발급
+3. S3 PUT 업로드 후 `PATCH /files/{id}/status`
+4. `POST /restaurant/search`(필요 시 `teamMemberId` 포함)
+5. 분석 성공 시 결과 화면 이동, 실패 시 로딩 화면에서 복귀 처리
 
-검색중에 이전 검색기록으로 화면을 덮고
+### 3-4. 히스토리/팀
+- 히스토리: `GET /histories?pageNumber`, `DELETE /histories/{id}`
+- 팀: 생성/목록/상세/참여/이름변경/나가기 지원
 
-현재 위치에서 xx개 검색중입니다… 텍스트하단에 
+---
 
-### 검색 대기 화면
+## 4) FE-BE API 연동 현황
 
-- 반경 x 미터 안에서 기피 재료를 반영한 식당을 검색하고 있습니다
-- 카카오 택시 기다리는 화면 느낌
+### 인증
+- `POST /auth/login`
+- `POST /auth/join`
+- `PATCH /members/language`
 
-### 검색 결과 화면
+### 기피재료
+- `GET /avoid-items/my`
+- `POST /avoid-items/my/search` (자연어 -> 기피재료 추출)
+- `PUT /avoid-items/my`
 
-- 식당 위치 마커, 이름, 추천하는 메뉴
-- 왜 이 메뉴가 추천 됐는지
-        - 너가 힌두교면 이거이거 안 먹는거 맞아?
+### 파일/분석
+- `POST /files/presigned-url`
+- `PATCH /files/{fileId}/status`
+- `POST /restaurant/search`
 
-### 사용자 프로필 조회 화면
+### 히스토리
+- `GET /histories?pageNumber={n}`
+- `DELETE /histories/{historyId}`
 
-- 기피 재료 목록?
-- 수정 → 삭제 및 추가
+### 팀
+- `POST /teams`
+- `GET /teams?pageNumber={n}`
+- `GET /teams/{teamMemberId}`
+- `POST /teams/join`
+- `PATCH /teams/members/{teamMemberId}`
+- `DELETE /teams/members/{teamMemberId}`
 
-### 검색 화면
+참고: 현재 프론트는 외부 AI 엔드포인트를 직접 호출하지 않고, 백엔드의 `POST /restaurant/search`를 통해 분석 결과를 받는다.
 
-검색중에 이전 검색기록으로 화면을 덮고
+---
 
-현재 위치에서 xx개 검색중입니다… 텍스트하단에 
+## 5) 상태 관리/로컬 저장
 
-### 검색 대기 화면
+- 상태관리: Riverpod (`authProvider`, `menuAnalysisProvider`, `historyListProvider`, `avoidItemNotifierProvider`, `team*Provider`)
+- 라우팅: GoRouter (인증 상태 기반 redirect)
+- 로컬 저장: `FlutterSecureStorage`
+  - `accessToken`
+  - `userEmail`
 
-- 반경 x 미터 안에서 기피 재료를 반영한 식당을 검색하고 있습니다
-- 카카오 택시 기다리는 화면 느낌
+---
 
-### 검색 결과 화면
+## 6) 현재 기준 남은 정리 과제(P2)
 
-- 식당 위치 마커, 이름, 추천하는 메뉴
-- 왜 이 메뉴가 추천 됐는지
-
-
-## 현재 구현된 api
-기능 이름,Method,URL,상태,Request Body
-로그인,POST,/auth/login,✅ 완료,-
-회원가입,POST,/auth/join,✅ 완료,-
-식당 검색,POST,/restaurant/search,🔄 진행 중,"{""keyword"": ""라면"", ""lat"": 37.123, ""lng"": 127.123}"
-알러지 목록 조회,GET,/allergies,✅ 완료,-
-내 알러지 조회,GET,/my/allergies,✅ 완료,-
-내 알러지 저장,PUT,/my/allergies,✅ 완료,"{""id"": [1, 2, 5]}"
-S3 Presigned URL 발급,POST,/files/presigned-url,✅ 완료,"{""path"": ""menu_board_request"", ""fileType"": ""png""}"
-S3 파일 상태 업데이트,PATCH,/files/{fileId}/status,✅ 완료,"{""fileStatus"": ""UPLOADED""}"
-AI 메뉴 분석 (외부),POST,https://hn-ui-gdg-team-9.hf.space/rank,✅ 완료 (Frontend 직접 호출),"{""image_url"": ""..."", ""avoid"": [...]}"
-
-### 식당 검색 (POST)
-
-JSON
-
-{
-  "keyword": "라면",
-  "lat": 37.123,
-  "lng": 127.123
-}
-
-### 내 알러지 저장 (PUT)
-
-JSON
-
-{
-  "id": [1, 2, 5]
-}
-
-### S3 Presigned URL 발급 (POST)
-- **설명**: 파일 업로드를 위한 Presigned URL을 발급받습니다.
-- **URL**: `/files/presigned-url`
-
-JSON
-{
-  "path": "menu_board_request",
-  "fileType": "png"
-}
-
-### S3 파일 상태 업데이트 (PATCH)
-- **설명**: S3 업로드 완료 후 백엔드에 상태를 업데이트하고 접근 가능한 URL을 받습니다.
-- **URL**: `/files/{fileId}/status`
-
-JSON
-{
-  "fileStatus": "UPLOADED"
-}
-
-### AI 메뉴 분석 (POST - External)
-- **설명**: Frontend에서 S3 업로드 완료 후 확보한 URL과 유저의 기피 재료를 AI 서비스에 직접 보냅니다.
-- **URL**: `https://hn-ui-gdg-team-9.hf.space/rank`
-
-JSON
-{
-  "image_url": "https://safeplate26.s3.ap-northeast-2.amazonaws.com/...",
-  "avoid": ["계란", "땅콩", "고수"]
-}
-
-## ERD 참고용
-```mermaid
-erDiagram
-    MEMBER ||--o{ INDIVIDUAL_ALLERGY : "has"
-    ALLERGY_INFO ||--o{ INDIVIDUAL_ALLERGY : "categorizes"
-
-    MEMBER {
-        string UniqueID PK
-        string email "이메일"
-        string password "비밀번호"
-    }
-
-    ALLERGY_INFO {
-        string UniqueID PK
-        string name "알러지명"
-    }
-
-    INDIVIDUAL_ALLERGY {
-        string UniqueID PK
-        string allergyID FK "알러지 정보 ID"
-        string memberID FK "회원 ID"
-    }
-```
+- 프로필 IA를 "자연어 입력 -> 선택된 재료 관리" 중심으로 단순화
+- 개발 로그 정책 확정(`kDebugMode` 제한, 릴리스 전 민감 로그 마스킹/제거)
