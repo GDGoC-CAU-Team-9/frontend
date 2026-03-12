@@ -40,7 +40,9 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           if (mounted) {
             ScaffoldMessenger.of(
               context,
-            ).showSnackBar(const SnackBar(content: Text('회원가입 성공! 로그인해주세요.')));
+            ).showSnackBar(
+              SnackBar(content: Text(tr('auth.signup_success'))),
+            );
             context.pop(); // Go back to login
           }
         }
@@ -53,10 +55,22 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     ref.listen(authProvider, (previous, next) {
       next.whenOrNull(
         error: (error, stack) {
-          final message = _toUserMessage(error, fallback: '회원가입에 실패했습니다.');
+          final message = _toUserMessage(
+            error,
+            fallback: tr('auth.signup_failed_default'),
+          );
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('회원가입 실패: $message')));
+          ).showSnackBar(
+            SnackBar(
+              content: Text(
+                tr(
+                  'auth.signup_failed_with_message',
+                  namedArgs: {'message': message},
+                ),
+              ),
+            ),
+          );
         },
       );
     });
@@ -67,8 +81,8 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text(
-          '회원가입',
+        title: Text(
+          tr('auth.signup_title'),
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
         ),
         backgroundColor: Colors.transparent,
@@ -114,7 +128,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                         TextFormField(
                           controller: _emailController,
                           decoration: InputDecoration(
-                            labelText: '이메일',
+                            labelText: tr('common.email'),
                             prefixIcon: const Icon(Icons.email),
                             filled: true,
                             fillColor: Colors.white54,
@@ -124,13 +138,15 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                             ),
                           ),
                           validator: (value) =>
-                              value!.isEmpty ? '이메일을 입력해주세요' : null,
+                              value!.isEmpty
+                                  ? tr('auth.email_required')
+                                  : null,
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
                           controller: _passwordController,
                           decoration: InputDecoration(
-                            labelText: '비밀번호',
+                            labelText: tr('common.password'),
                             prefixIcon: const Icon(Icons.lock),
                             filled: true,
                             fillColor: Colors.white54,
@@ -189,9 +205,9 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                                 ? const CircularProgressIndicator(
                                     color: Colors.white,
                                   )
-                                : const Text(
-                                    '회원가입',
-                                    style: TextStyle(
+                                : Text(
+                                    tr('auth.signup_button'),
+                                    style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
                                     ),

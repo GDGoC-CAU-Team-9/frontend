@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../providers/auth_provider.dart';
 import '../../../../core/theme/app_design.dart';
 
@@ -41,10 +42,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     ref.listen(authProvider, (previous, next) {
       next.whenOrNull(
         error: (error, stack) {
-          final message = _toUserMessage(error, fallback: '로그인에 실패했습니다.');
+          final message = _toUserMessage(
+            error,
+            fallback: tr('auth.login_failed_default'),
+          );
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('로그인 실패: $message')));
+          ).showSnackBar(
+            SnackBar(
+              content: Text(
+                tr(
+                  'auth.login_failed_with_message',
+                  namedArgs: {'message': message},
+                ),
+              ),
+            ),
+          );
         },
       );
     });
@@ -93,27 +106,31 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         children: [
                           TextFormField(
                             controller: _emailController,
-                            decoration: const InputDecoration(
-                              labelText: '이메일',
+                            decoration: InputDecoration(
+                              labelText: tr('common.email'),
                               border: OutlineInputBorder(),
                               filled: true,
                               fillColor: Colors.white54,
                             ),
                             validator: (value) =>
-                                value!.isEmpty ? '이메일을 입력해주세요' : null,
+                                value!.isEmpty
+                                    ? tr('auth.email_required')
+                                    : null,
                           ),
                           const SizedBox(height: 16),
                           TextFormField(
                             controller: _passwordController,
-                            decoration: const InputDecoration(
-                              labelText: '비밀번호',
+                            decoration: InputDecoration(
+                              labelText: tr('common.password'),
                               border: OutlineInputBorder(),
                               filled: true,
                               fillColor: Colors.white54,
                             ),
                             obscureText: true,
                             validator: (value) =>
-                                value!.isEmpty ? '비밀번호를 입력해주세요' : null,
+                                value!.isEmpty
+                                    ? tr('auth.password_required')
+                                    : null,
                           ),
                           const SizedBox(height: 32),
                           ElevatedButton(
@@ -130,15 +147,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 ? const CircularProgressIndicator(
                                     color: Colors.white,
                                   )
-                                : const Text(
-                                    '로그인',
-                                    style: TextStyle(fontSize: 16),
+                                : Text(
+                                    tr('auth.login_button'),
+                                    style: const TextStyle(fontSize: 16),
                                   ),
                           ),
                           const SizedBox(height: 16),
                           TextButton(
                             onPressed: () => context.push('/signup'),
-                            child: const Text('계정이 없으신가요? 회원가입'),
+                            child: Text(tr('auth.no_account_signup')),
                           ),
                         ],
                       ),

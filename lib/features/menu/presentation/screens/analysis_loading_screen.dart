@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../providers/menu_provider.dart';
 import '../../../../core/theme/app_design.dart';
 
@@ -103,7 +104,10 @@ class _AnalysisLoadingScreenState extends ConsumerState<AnalysisLoadingScreen>
           // 2. Center Content
           Center(
             child: analysisState.hasError
-                ? _buildErrorCard(context, errorMessage ?? '알 수 없는 오류가 발생했습니다.')
+                ? _buildErrorCard(
+                    context,
+                    errorMessage ?? tr('common.unknown_error'),
+                  )
                 : Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -136,10 +140,10 @@ class _AnalysisLoadingScreenState extends ConsumerState<AnalysisLoadingScreen>
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Text(
-                                  '메뉴판 이미지를 분석하고 있어요...',
+                                Text(
+                                  tr('analysis_loading.title'),
                                   textAlign: TextAlign.center,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w600,
                                     color: Colors.black87,
@@ -147,7 +151,7 @@ class _AnalysisLoadingScreenState extends ConsumerState<AnalysisLoadingScreen>
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'AI가 메뉴 이름과 재료를 인식 중입니다...',
+                                  tr('analysis_loading.description'),
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     fontSize: 14,
@@ -157,11 +161,20 @@ class _AnalysisLoadingScreenState extends ConsumerState<AnalysisLoadingScreen>
                                 const SizedBox(height: 30),
 
                                 // Steps
-                                _buildStepItem('메뉴 텍스트 인식', _step1),
+                                _buildStepItem(
+                                  tr('analysis_loading.step_text'),
+                                  _step1,
+                                ),
                                 const SizedBox(height: 12),
-                                _buildStepItem('재료 성분 분석', _step2),
+                                _buildStepItem(
+                                  tr('analysis_loading.step_ingredient'),
+                                  _step2,
+                                ),
                                 const SizedBox(height: 12),
-                                _buildStepItem('알러지 위험 진단', _step3),
+                                _buildStepItem(
+                                  tr('analysis_loading.step_risk'),
+                                  _step3,
+                                ),
 
                                 const SizedBox(height: 30),
 
@@ -235,10 +248,10 @@ class _AnalysisLoadingScreenState extends ConsumerState<AnalysisLoadingScreen>
             children: [
               const Icon(Icons.error_outline, color: Colors.redAccent, size: 42),
               const SizedBox(height: 12),
-              const Text(
-                '메뉴 분석에 실패했습니다.',
+              Text(
+                tr('analysis_loading.failed_title'),
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.black87,
@@ -262,7 +275,7 @@ class _AnalysisLoadingScreenState extends ConsumerState<AnalysisLoadingScreen>
                     }
                   },
                   icon: const Icon(Icons.arrow_back),
-                  label: const Text('이전 화면으로'),
+                  label: Text(tr('analysis_loading.back_to_previous')),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.teal,
                     foregroundColor: Colors.white,

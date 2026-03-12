@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../data/repositories/history_repository.dart';
 import '../../../../core/theme/app_design.dart';
 
@@ -24,13 +25,13 @@ class HistoryDetailScreen extends StatelessWidget {
   String _getSafetyLabel(String safetyLevel) {
     switch (safetyLevel) {
       case 'safe':
-        return '안전';
+        return tr('history_detail.safety.safe');
       case 'caution':
-        return '주의';
+        return tr('history_detail.safety.caution');
       case 'danger':
-        return '위험';
+        return tr('history_detail.safety.danger');
       default:
-        return '알 수 없음';
+        return tr('history_detail.safety.unknown');
     }
   }
 
@@ -106,8 +107,8 @@ class HistoryDetailScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              title: const Text(
-                '분석 결과',
+              title: Text(
+                tr('history_detail.title'),
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: Colors.black87,
@@ -178,7 +179,10 @@ class HistoryDetailScreen extends StatelessWidget {
                     ),
                     const Spacer(),
                     Text(
-                      '${historyItem.items.length}개 메뉴 분석됨',
+                      tr(
+                        'history_detail.items_analyzed',
+                        namedArgs: {'count': '${historyItem.items.length}'},
+                      ),
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.grey.shade600,
@@ -215,8 +219,8 @@ class HistoryDetailScreen extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'AI 추천 메뉴',
+                              Text(
+                                tr('history_detail.ai_best_menu'),
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.teal,
@@ -243,7 +247,12 @@ class HistoryDetailScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(15),
                           ),
                           child: Text(
-                            '${historyItem.best!.safetyScore}점',
+                            tr(
+                              'common.points',
+                              namedArgs: {
+                                'value': '${historyItem.best!.safetyScore}',
+                              },
+                            ),
                             style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -259,8 +268,8 @@ class HistoryDetailScreen extends StatelessWidget {
 
             // Menu items list
             if (historyItem.items.isEmpty)
-              const SliverFillRemaining(
-                child: Center(child: Text('분석된 메뉴가 없습니다.')),
+              SliverFillRemaining(
+                child: Center(child: Text(tr('history_detail.no_items'))),
               )
             else
               SliverPadding(
@@ -303,7 +312,15 @@ class HistoryDetailScreen extends StatelessWidget {
                                   ),
                                 ),
                                 child: Text(
-                                  '${_getSafetyLabel(item.safetyLevel)} ${item.safetyScore}점',
+                                  tr(
+                                    'history_detail.safety_score',
+                                    namedArgs: {
+                                      'label': _getSafetyLabel(
+                                        item.safetyLevel,
+                                      ),
+                                      'score': '${item.safetyScore}',
+                                    },
+                                  ),
                                   style: TextStyle(
                                     color: _getScoreColor(item.safetyLevel),
                                     fontWeight: FontWeight.bold,

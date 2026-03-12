@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/theme/app_design.dart';
 import '../providers/avoid_item_provider.dart';
 
@@ -14,8 +15,8 @@ class AvoidListScreen extends ConsumerWidget {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text(
-          '선택된 기피재료',
+        title: Text(
+          tr('avoid.list_title'),
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
         ),
         backgroundColor: Colors.transparent,
@@ -54,13 +55,16 @@ class AvoidListScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    '불러오기 실패: $err',
+                    tr(
+                      'avoid.load_failed_with_message',
+                      namedArgs: {'message': err.toString()},
+                    ),
                     style: const TextStyle(color: Colors.black54),
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () => ref.invalidate(myAvoidItemsProvider),
-                    child: const Text('다시 시도'),
+                    child: Text(tr('common.retry')),
                   ),
                 ],
               ),
@@ -84,8 +88,8 @@ class AvoidListScreen extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      const Text(
-                        '등록된 기피재료가 없습니다',
+                      Text(
+                        tr('avoid.empty_title'),
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w600,
@@ -94,7 +98,7 @@ class AvoidListScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        '"내용 입력" 에서 기피재료를 추가해보세요.',
+                        tr('avoid.empty_desc'),
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey.shade500,
@@ -107,8 +111,8 @@ class AvoidListScreen extends ConsumerWidget {
                           context.push('/profile/avoid-input');
                         },
                         icon: const Icon(Icons.add, color: Colors.white),
-                        label: const Text(
-                          '기피재료 입력하기',
+                        label: Text(
+                          tr('avoid.go_input'),
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
@@ -157,7 +161,10 @@ class AvoidListScreen extends ConsumerWidget {
                           ),
                           const SizedBox(width: 12),
                           Text(
-                            '총 ${items.length}개의 기피재료가 등록되어 있습니다.',
+                            tr(
+                              'avoid.total_items',
+                              namedArgs: {'count': '${items.length}'},
+                            ),
                             style: const TextStyle(
                               fontSize: 14,
                               color: Colors.black54,
@@ -249,7 +256,9 @@ class AvoidListScreen extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('\'$item\' 이(가) 삭제되었습니다.'),
+            content: Text(
+              tr('avoid.remove_success', namedArgs: {'item': item}),
+            ),
             backgroundColor: Colors.teal,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -261,7 +270,15 @@ class AvoidListScreen extends ConsumerWidget {
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('삭제 실패: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(
+              tr(
+                'avoid.remove_failed_with_message',
+                namedArgs: {'message': e.toString()},
+              ),
+            ),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }

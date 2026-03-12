@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/theme/app_design.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -10,8 +11,8 @@ class ProfileScreen extends StatelessWidget {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text(
-          '프로필 관리',
+        title: Text(
+          tr('profile.title'),
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
         ),
         backgroundColor: Colors.transparent,
@@ -40,8 +41,8 @@ class ProfileScreen extends StatelessWidget {
             children: [
               _buildMenuCard(
                 context,
-                title: '내용 입력',
-                description: '자연어로 식이 제한을 입력하면 AI가 기피재료를 추출합니다.',
+                title: tr('profile.input_title'),
+                description: tr('profile.input_desc'),
                 icon: Icons.edit_note,
                 onTap: () => context.push('/profile/avoid-input'),
                 isActive: true,
@@ -49,8 +50,8 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 16),
               _buildMenuCard(
                 context,
-                title: '선택된 재료',
-                description: '저장된 기피재료 목록을 확인하고 관리합니다.',
+                title: tr('profile.selected_title'),
+                description: tr('profile.selected_desc'),
                 icon: Icons.checklist,
                 onTap: () => context.push('/profile/avoid-list'),
                 isActive: true,
