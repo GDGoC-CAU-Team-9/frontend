@@ -19,13 +19,19 @@ import '../../features/team/presentation/screens/team_list_screen.dart';
 import '../../features/team/presentation/screens/team_detail_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authProvider);
-  final isAuthLoading = authState.isLoading;
-  final isAuthenticated = authState.valueOrNull != null;
+  final authRefresh = ValueNotifier(0);
+  ref.onDispose(authRefresh.dispose);
+  ref.listen(authProvider, (previous, next) {
+    authRefresh.value++;
+  });
 
   return GoRouter(
     initialLocation: '/splash',
+    refreshListenable: authRefresh,
     redirect: (context, state) {
+      final authState = ref.read(authProvider);
+      final isAuthLoading = authState.isLoading;
+      final isAuthenticated = authState.valueOrNull != null;
       final location = state.matchedLocation;
       final isSplashRoute = location == '/splash';
       final isAuthRoute = location == '/login' || location == '/signup';

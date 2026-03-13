@@ -31,10 +31,6 @@ class AuthRepository {
         ),
       );
 
-      print('Login response status: ${response.statusCode}');
-      print('Login response data: ${response.data}');
-      print('Login response headers: ${response.headers}');
-
       // Extract Token (Try Header 'Authorization' first, then Body 'accessToken')
       String? token;
 
@@ -74,7 +70,6 @@ class AuthRepository {
             message: '로그인 응답에 토큰이 없습니다.',
           );
         }
-        print('Token found: $token');
         await _storage.write(key: _tokenKey, value: token);
         await _storage.write(key: _emailKey, value: email);
         return;

@@ -12,7 +12,10 @@ void main() {
 
   setUpAll(() async {
     SharedPreferences.setMockInitialValues({});
-    await dotenv.load(fileName: '.env');
+    await dotenv.load(
+      isOptional: true,
+      mergeWith: {'BASE_URL': 'http://localhost:8080'},
+    );
     await EasyLocalization.ensureInitialized();
   });
 

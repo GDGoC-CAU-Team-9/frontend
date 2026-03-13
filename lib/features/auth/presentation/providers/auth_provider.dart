@@ -29,7 +29,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
       final email = (savedEmail == null || savedEmail.trim().isEmpty)
           ? 'user@safeplate.local'
           : savedEmail;
-      state = AsyncValue.data(User(id: 'local', email: email, name: '사용자'));
+      state = AsyncValue.data(User(id: 'local', email: email, name: null));
     } catch (_) {
       // Fall back to logged-out state if local session restore fails.
       state = const AsyncValue.data(null);
@@ -41,7 +41,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
     state = await AsyncValue.guard(() async {
       await _authRepository.login(email: email, password: password);
       // Since API doesn't return user info, we create a local user object with the email
-      return User(id: 'local', email: email, name: '사용자');
+      return User(id: 'local', email: email, name: null);
     });
   }
 
