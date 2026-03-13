@@ -1,10 +1,10 @@
 import 'dart:ui';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:dio/dio.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:easy_localization/easy_localization.dart';
+import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/data/repositories/auth_repository.dart';
 import '../../../history/presentation/providers/history_provider.dart';
@@ -12,7 +12,7 @@ import '../../../history/data/repositories/history_repository.dart';
 import '../../../team/presentation/providers/team_provider.dart';
 import '../../../../core/theme/app_design.dart';
 import '../../../../core/constants/app_constants.dart';
-import 'package:image_picker/image_picker.dart';
+import '../../../../core/utils/error_utils.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -554,7 +554,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 }
                               } catch (e) {
                                 if (!mounted) return;
-                                final message = _toUserMessage(
+                                final message = toUserMessage(
                                   e,
                                   fallback: tr('home.language_change_failed'),
                                 );
@@ -920,7 +920,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            _toUserMessage(e, fallback: tr('home.history_delete_failed')),
+            toUserMessage(e, fallback: tr('home.history_delete_failed')),
           ),
         ),
       );
@@ -972,30 +972,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
 
     return '${date.year}.${date.month.toString().padLeft(2, '0')}.${date.day.toString().padLeft(2, '0')}';
-  }
-
-  String _toUserMessage(Object error, {required String fallback}) {
-    if (error is DioException) {
-      final data = error.response?.data;
-      if (data is Map) {
-        final message = data['message']?.toString();
-        if (message != null && message.trim().isNotEmpty) {
-          return message.trim();
-        }
-
-        final result = data['result'];
-        if (result is String && result.trim().isNotEmpty) {
-          return result.trim();
-        }
-      }
-
-      final message = error.message;
-      if (message != null && message.trim().isNotEmpty) {
-        return message.trim();
-      }
-    }
-
-    return fallback;
   }
 
   @override

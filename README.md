@@ -38,6 +38,28 @@ flutter run -d chrome --web-browser-flag "--disable-web-security"
 
 ---
 
+## 🌐 i18n 번역 추적 (2026-03-13)
+
+- `es/fr/ja/zh`에 새로 추가된 일부 키가 현재 영어 플레이스홀더로 유지되어 있음
+- `en`과 동일한 값(미번역) 기준 현재 각 로케일당 `134`개 키 추적 중
+  - `analysis_loading`: 7
+  - `analysis_result`: 4
+  - `auth`: 11
+  - `avoid`: 19
+  - `common`: 11
+  - `history_detail`: 9
+  - `home`: 33
+  - `profile`: 5
+  - `team`: 35
+- Follow-up 작업
+  - [ ] `es` 번역 반영
+  - [ ] `fr` 번역 반영
+  - [ ] `ja` 번역 반영
+  - [ ] `zh` 번역 반영
+  - [ ] 번역 반영 후 화면 회귀 점검 (로그인/홈/기록/팀/분석 결과)
+
+---
+
 ## ✅ 개발 우선순위 TODO (2026-03-11)
 
 ### P0 (필수)
