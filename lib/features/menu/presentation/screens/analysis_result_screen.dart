@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'dart:io';
 import '../providers/menu_provider.dart';
-import '../../data/repositories/menu_repository.dart';
 import '../../../../core/theme/app_design.dart';
 
 class AnalysisResultScreen extends ConsumerStatefulWidget {
@@ -82,17 +82,24 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen> {
       body: Container(
         decoration: const BoxDecoration(gradient: AppDesign.backgroundGradient),
         child: analysisState.when(
-          loading: () => const Center(
+          loading: () => Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 CircularProgressIndicator(),
                 SizedBox(height: 16),
-                Text('AI가 메뉴판을 분석 중입니다...'),
+                Text('analysis_result.analyzing'.tr()),
               ],
             ),
           ),
-          error: (err, stack) => Center(child: Text('오류 발생: $err')),
+          error: (err, stack) => Center(
+            child: Text(
+              tr(
+                'analysis_result.error_with_message',
+                namedArgs: {'message': err.toString()},
+              ),
+            ),
+          ),
           data: (results) {
             return CustomScrollView(
               slivers: [
@@ -117,8 +124,8 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen> {
                       ),
                     ),
                   ),
-                  title: const Text(
-                    '분석 결과',
+                  title: Text(
+                    tr('analysis_result.title'),
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
@@ -155,8 +162,8 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen> {
 
                 // Results list
                 if (results.isEmpty)
-                  const SliverFillRemaining(
-                    child: Center(child: Text('분석된 메뉴가 없습니다.')),
+                  SliverFillRemaining(
+                    child: Center(child: Text(tr('analysis_result.no_items'))),
                   )
                 else
                   SliverPadding(
@@ -200,7 +207,10 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen> {
                                       ),
                                     ),
                                     child: Text(
-                                      '${item.safetyScore}점',
+                                      tr(
+                                        'common.points',
+                                        namedArgs: {'value': '${item.safetyScore}'},
+                                      ),
                                       style: TextStyle(
                                         color: _getScoreColor(item.safetyLevel),
                                         fontWeight: FontWeight.bold,

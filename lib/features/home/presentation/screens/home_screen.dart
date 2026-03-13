@@ -1,16 +1,18 @@
 import 'dart:ui';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:easy_localization/easy_localization.dart';
+import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../auth/data/repositories/auth_repository.dart';
 import '../../../history/presentation/providers/history_provider.dart';
 import '../../../history/data/repositories/history_repository.dart';
 import '../../../team/presentation/providers/team_provider.dart';
 import '../../../../core/theme/app_design.dart';
 import '../../../../core/constants/app_constants.dart';
-import 'package:image_picker/image_picker.dart';
+import '../../../../core/utils/error_utils.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -67,7 +69,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('이미지 선택 실패: $e')));
+        ).showSnackBar(
+          SnackBar(
+            content: Text(
+              tr(
+                'home.image_pick_failed_with_message',
+                namedArgs: {'message': e.toString()},
+              ),
+            ),
+          ),
+        );
       }
     }
   }
@@ -99,7 +110,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               _buildImageSourceButton(
                 context,
                 icon: Icons.camera_alt_rounded,
-                text: '카메라로 촬영하기',
+                text: tr('home.source_camera'),
                 color: Colors.teal,
                 onTap: () {
                   Navigator.of(context).pop();
@@ -110,7 +121,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               _buildImageSourceButton(
                 context,
                 icon: Icons.photo_library_rounded,
-                text: '갤러리에서 선택하기',
+                text: tr('home.source_gallery'),
                 color: Colors.blueAccent,
                 onTap: () {
                   Navigator.of(context).pop();
@@ -151,8 +162,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              const Text(
-                '누구 기준으로 분석할까요?',
+              Text(
+                tr('home.target_sheet_title'),
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -188,22 +199,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         ),
                       ),
                       const SizedBox(width: 16),
-                      const Expanded(
+                      Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '나만을 위한 분석',
-                              style: TextStyle(
+                              tr('home.target_personal_title'),
+                              style: const TextStyle(
                                 fontSize: 17,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black87,
                               ),
                             ),
-                            SizedBox(height: 4),
+                            const SizedBox(height: 4),
                             Text(
-                              '내 기피 재료/알러지만 반영',
-                              style: TextStyle(
+                              tr('home.target_personal_desc'),
+                              style: const TextStyle(
                                 fontSize: 13,
                                 color: Colors.black54,
                               ),
@@ -221,8 +232,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ),
               const SizedBox(height: 18),
-              const Text(
-                '팀을 선택해 같이 분석하기',
+              Text(
+                tr('home.target_team_title'),
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
@@ -252,7 +263,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '팀 목록을 불러오지 못했습니다.\n$err',
+                              tr(
+                                'home.team_load_failed_with_message',
+                                namedArgs: {'message': err.toString()},
+                              ),
                               style: const TextStyle(
                                 color: Colors.redAccent,
                                 fontSize: 13,
@@ -263,7 +277,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   .read(teamListProvider.notifier)
                                   .fetchInitial(),
                               icon: const Icon(Icons.refresh),
-                              label: const Text('다시 시도'),
+                              label: Text(tr('common.retry')),
                             ),
                           ],
                         ),
@@ -278,16 +292,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  '등록된 팀이 없습니다.',
+                                Text(
+                                  tr('home.team_empty_title'),
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: Colors.black87,
                                   ),
                                 ),
                                 const SizedBox(height: 6),
-                                const Text(
-                                  '팀을 만들거나 초대에 참여해보세요.',
+                                Text(
+                                  tr('home.team_empty_desc'),
                                   style: TextStyle(
                                     color: Colors.black54,
                                     fontSize: 13,
@@ -300,7 +314,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                     context.push('/teams');
                                   },
                                   icon: const Icon(Icons.group_add),
-                                  label: const Text('팀 만들기/참여하기'),
+                                  label: Text(tr('home.team_create_or_join')),
                                   style: TextButton.styleFrom(
                                     foregroundColor: Colors.teal,
                                   ),
@@ -337,7 +351,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   ),
                                 ),
                                 subtitle: Text(
-                                  '멤버 ${team.members.length}명 · ID ${team.teamMemberId}',
+                                  tr(
+                                    'home.team_member_count_id',
+                                    namedArgs: {
+                                      'count': '${team.members.length}',
+                                      'id': '${team.teamMemberId}',
+                                    },
+                                  ),
                                   style: const TextStyle(
                                     color: Colors.black54,
                                     fontSize: 12,
@@ -373,9 +393,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     context.push('/teams');
                   },
                   icon: const Icon(Icons.manage_accounts, color: Colors.white),
-                  label: const Text(
-                    '팀 관리로 이동',
-                    style: TextStyle(color: Colors.white),
+                  label: Text(
+                    tr('home.go_to_team_management'),
+                    style: const TextStyle(color: Colors.white),
                   ),
                 ),
               ),
@@ -508,21 +528,38 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           onTap: () async {
                             Navigator.pop(context);
                             if (!isSelected) {
-                              await context.setLocale(Locale(lang['code']!));
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      tr(
-                                        'language_changed',
-                                        namedArgs: {
-                                          'lang': tr(
-                                            'language.${lang['code']}',
-                                          ),
-                                        },
+                              try {
+                                await ref
+                                    .read(authRepositoryProvider)
+                                    .updateLanguage(lang['code']!);
+
+                                if (!mounted) return;
+
+                                await context.setLocale(Locale(lang['code']!));
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        tr(
+                                          'language_changed',
+                                          namedArgs: {
+                                            'lang': tr(
+                                              'language.${lang['code']}',
+                                            ),
+                                          },
+                                        ),
                                       ),
                                     ),
-                                  ),
+                                  );
+                                }
+                              } catch (e) {
+                                if (!mounted) return;
+                                final message = toUserMessage(
+                                  e,
+                                  fallback: tr('home.language_change_failed'),
+                                );
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(message)),
                                 );
                               }
                             }
@@ -552,7 +589,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             Icon(Icons.error_outline, size: 48, color: Colors.grey.shade400),
             const SizedBox(height: 16),
             Text(
-              '기록을 불러오지 못했습니다.',
+              tr('home.history_load_failed'),
               style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
             ),
             const SizedBox(height: 16),
@@ -560,7 +597,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               onPressed: () =>
                   ref.read(historyListProvider.notifier).loadInitial(),
               icon: const Icon(Icons.refresh),
-              label: const Text('다시 시도'),
+              label: Text(tr('common.retry')),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.teal,
                 foregroundColor: Colors.white,
@@ -598,23 +635,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ),
             const SizedBox(height: 32),
-            const Text(
-              '메뉴판을 촬영하여\n안전한 음식을 찾아보세요!',
+            Text(
+              tr('home.empty_title'),
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: Colors.black87,
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'AI가 기피 재료를 분석해 드립니다.',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
+            Text(
+              tr('home.empty_desc'),
+              style: const TextStyle(fontSize: 16, color: Colors.grey),
             ),
             const SizedBox(height: 32),
             Text(
-              '우측 하단의 + 버튼을 눌러 시작하세요',
+              tr('home.empty_hint'),
               style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
             ),
           ],
@@ -783,24 +820,36 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             if (item.best != null)
                               _buildSummaryChip(
                                 icon: Icons.thumb_up_alt_outlined,
-                                label: '추천: ${item.best!.menuName}',
+                                label: tr(
+                                  'home.chip_best',
+                                  namedArgs: {'name': item.best!.menuName},
+                                ),
                                 color: Colors.teal.shade700,
                               ),
                             _buildSummaryChip(
                               icon: Icons.restaurant_menu,
-                              label: '$menuCount개',
+                              label: tr(
+                                'home.chip_menu_count',
+                                namedArgs: {'count': '$menuCount'},
+                              ),
                               color: Colors.teal.shade700,
                             ),
                             if (safeCount > 0)
                               _buildSummaryChip(
                                 icon: Icons.check_circle_outline,
-                                label: '안전 $safeCount',
+                                label: tr(
+                                  'home.chip_safe_count',
+                                  namedArgs: {'count': '$safeCount'},
+                                ),
                                 color: Colors.green.shade800,
                               ),
                             if (dangerCount > 0)
                               _buildSummaryChip(
                                 icon: Icons.warning_amber_rounded,
-                                label: '위험 $dangerCount',
+                                label: tr(
+                                  'home.chip_danger_count',
+                                  namedArgs: {'count': '$dangerCount'},
+                                ),
                                 color: Colors.red.shade800,
                               ),
                           ],
@@ -811,10 +860,71 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ),
             ),
+            Positioned(
+              top: 8,
+              right: 8,
+              child: Material(
+                color: Colors.black.withOpacity(0.35),
+                shape: const CircleBorder(),
+                child: IconButton(
+                  tooltip: tr('home.history_delete_tooltip'),
+                  icon: const Icon(
+                    Icons.delete_outline,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                  onPressed: () => _confirmDeleteHistory(item),
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _confirmDeleteHistory(HistoryItem item) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(tr('home.history_delete_title')),
+          content: Text(tr('home.history_delete_content')),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(tr('common.cancel')),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(
+                tr('common.delete'),
+                style: const TextStyle(color: Colors.redAccent),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    try {
+      await ref.read(historyListProvider.notifier).deleteHistory(item.id);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(tr('home.history_delete_success'))),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            toUserMessage(e, fallback: tr('home.history_delete_failed')),
+          ),
+        ),
+      );
+    }
   }
 
   Widget _buildSummaryChip({
@@ -850,10 +960,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final now = DateTime.now();
     final diff = now.difference(date);
 
-    if (diff.inMinutes < 1) return '방금 전';
-    if (diff.inMinutes < 60) return '${diff.inMinutes}분 전';
-    if (diff.inHours < 24) return '${diff.inHours}시간 전';
-    if (diff.inDays < 7) return '${diff.inDays}일 전';
+    if (diff.inMinutes < 1) return tr('home.time_just_now');
+    if (diff.inMinutes < 60) {
+      return tr('home.time_minutes_ago', namedArgs: {'value': '${diff.inMinutes}'});
+    }
+    if (diff.inHours < 24) {
+      return tr('home.time_hours_ago', namedArgs: {'value': '${diff.inHours}'});
+    }
+    if (diff.inDays < 7) {
+      return tr('home.time_days_ago', namedArgs: {'value': '${diff.inDays}'});
+    }
 
     return '${date.year}.${date.month.toString().padLeft(2, '0')}.${date.day.toString().padLeft(2, '0')}';
   }
@@ -932,7 +1048,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          user?.name ?? '사용자',
+                          user?.name ?? tr('common.user'),
                           style: const TextStyle(
                             color: Colors.black87,
                             fontSize: 20,
@@ -990,8 +1106,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           Icons.group,
                           color: Colors.indigoAccent,
                         ),
-                        title: const Text(
-                          '내 팀 관리',
+                        title: Text(
+                          tr('team.manage_title'),
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
                             color: Colors.black87,
@@ -1055,9 +1171,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             color: Colors.redAccent,
                           ),
                         ),
-                        onTap: () {
+                        onTap: () async {
                           Navigator.pop(context);
-                          context.go('/login');
+                          await ref.read(authProvider.notifier).logout();
+                          if (mounted) {
+                            context.go('/login');
+                          }
                         },
                       ),
                     ),
@@ -1086,7 +1205,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        '분석 기록',
+                        tr('home.history_header'),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -1109,9 +1228,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         foregroundColor: Colors.white,
         elevation: 4,
         icon: const Icon(Icons.document_scanner_rounded),
-        label: const Text(
-          '검사하기',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+        label: Text(
+          tr('home.scan_button'),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
         ),
       ),
     );

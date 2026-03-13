@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../providers/team_provider.dart';
 import '../../../../core/theme/app_design.dart';
 
@@ -15,8 +16,8 @@ class TeamListScreen extends ConsumerWidget {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text(
-          '내 팀 관리',
+        title: Text(
+          tr('team.manage_title'),
           style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.transparent,
@@ -47,15 +48,18 @@ class TeamListScreen extends ConsumerWidget {
               child: CircularProgressIndicator(color: Colors.teal),
             ),
             error: (err, stack) => Center(
-              child: Text('에러가 발생했습니다:\n$err', textAlign: TextAlign.center),
+              child: Text(
+                tr('team.error_with_message', namedArgs: {'message': '$err'}),
+                textAlign: TextAlign.center,
+              ),
             ),
             data: (teams) {
               if (teams.isEmpty) {
-                return const Center(
+                return Center(
                   child: Text(
-                    '소속된 팀이 없습니다.\n새로운 팀을 만들거나 참여해보세요!',
+                    tr('team.empty_state'),
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Colors.black87,
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -90,7 +94,12 @@ class TeamListScreen extends ConsumerWidget {
                           fontSize: 18,
                         ),
                       ),
-                      subtitle: Text('내 멤버 ID: ${team.teamMemberId}'),
+                      subtitle: Text(
+                        tr(
+                          'team.my_member_id',
+                          namedArgs: {'id': '${team.teamMemberId}'},
+                        ),
+                      ),
                       trailing: const Icon(
                         Icons.arrow_forward_ios_rounded,
                         size: 16,
@@ -111,9 +120,12 @@ class TeamListScreen extends ConsumerWidget {
         onPressed: () => _showTeamActionDialog(context, ref),
         backgroundColor: Colors.teal,
         icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text(
-          '팀 추가',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        label: Text(
+          tr('team.add_button'),
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
     );
@@ -143,7 +155,7 @@ class TeamListScreen extends ConsumerWidget {
               _buildActionItem(
                 context,
                 icon: Icons.group_add,
-                text: '새로 팀 만들기',
+                text: tr('team.create_new'),
                 color: Colors.teal,
                 onTap: () {
                   Navigator.pop(context);
@@ -154,7 +166,7 @@ class TeamListScreen extends ConsumerWidget {
               _buildActionItem(
                 context,
                 icon: Icons.login_rounded,
-                text: '기존 팀 참여하기',
+                text: tr('team.join_existing'),
                 color: Colors.blueAccent,
                 onTap: () {
                   Navigator.pop(context);
@@ -225,14 +237,14 @@ class TeamListScreen extends ConsumerWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          title: const Text(
-            '새 팀 만들기',
+          title: Text(
+            tr('team.create_dialog_title'),
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           content: TextField(
             controller: controller,
             decoration: InputDecoration(
-              labelText: '팀 이름',
+              labelText: tr('team.team_name_label'),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -245,9 +257,9 @@ class TeamListScreen extends ConsumerWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text(
-                '취소',
-                style: TextStyle(
+              child: Text(
+                tr('common.cancel'),
+                style: const TextStyle(
                   color: Colors.grey,
                   fontWeight: FontWeight.bold,
                 ),
@@ -269,16 +281,20 @@ class TeamListScreen extends ConsumerWidget {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(
                     context,
-                  ).showSnackBar(const SnackBar(content: Text('팀이 생성되었습니다.')));
+                  ).showSnackBar(
+                    SnackBar(content: Text(tr('team.create_success'))),
+                  );
                 } else if (!success && context.mounted) {
                   ScaffoldMessenger.of(
                     context,
-                  ).showSnackBar(const SnackBar(content: Text('팀 생성 실패')));
+                  ).showSnackBar(
+                    SnackBar(content: Text(tr('team.create_failed'))),
+                  );
                 }
               },
-              child: const Text(
-                '생성',
-                style: TextStyle(
+              child: Text(
+                tr('common.create'),
+                style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
@@ -302,8 +318,8 @@ class TeamListScreen extends ConsumerWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          title: const Text(
-            '팀 참여하기',
+          title: Text(
+            tr('team.join_dialog_title'),
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           content: SingleChildScrollView(
@@ -313,7 +329,7 @@ class TeamListScreen extends ConsumerWidget {
                 TextField(
                   controller: emailCtrl,
                   decoration: InputDecoration(
-                    labelText: '초대자의 이메일',
+                    labelText: tr('team.inviter_email_label'),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -324,7 +340,7 @@ class TeamListScreen extends ConsumerWidget {
                   controller: idCtrl,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    labelText: '초대자의 멤버 ID (팀 카드에 보이는 숫자)',
+                    labelText: tr('team.inviter_member_id_label'),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -334,7 +350,7 @@ class TeamListScreen extends ConsumerWidget {
                 TextField(
                   controller: nameCtrl,
                   decoration: InputDecoration(
-                    labelText: '사용할 나의 그룹명',
+                    labelText: tr('team.my_group_name_label'),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -346,9 +362,9 @@ class TeamListScreen extends ConsumerWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text(
-                '취소',
-                style: TextStyle(
+              child: Text(
+                tr('common.cancel'),
+                style: const TextStyle(
                   color: Colors.grey,
                   fontWeight: FontWeight.bold,
                 ),
@@ -377,16 +393,18 @@ class TeamListScreen extends ConsumerWidget {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(
                     context,
-                  ).showSnackBar(const SnackBar(content: Text('팀에 참여했습니다.')));
+                  ).showSnackBar(
+                    SnackBar(content: Text(tr('team.join_success'))),
+                  );
                 } else if (!success && context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('팀 참여 실패. 정보를 확인하세요.')),
+                    SnackBar(content: Text(tr('team.join_failed'))),
                   );
                 }
               },
-              child: const Text(
-                '참여',
-                style: TextStyle(
+              child: Text(
+                tr('common.join'),
+                style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),

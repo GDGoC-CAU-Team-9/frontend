@@ -12,29 +12,56 @@ final authProvider = StateNotifierProvider<AuthNotifier, AsyncValue<User?>>((
 class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
   final AuthRepository _authRepository;
 
-  AuthNotifier(this._authRepository) : super(const AsyncValue.data(null));
+  AuthNotifier(this._authRepository) : super(const AsyncValue.loading()) {
+    restoreSession();
+  }
+
+  Future<void> restoreSession() async {
+    state = const AsyncValue.loading();
+    try {
+      final hasSession = await _authRepository.hasActiveSession();
+      if (!hasSession) {
+        state = const AsyncValue.data(null);
+        return;
+      }
+
+      final savedEmail = await _authRepository.getStoredEmail();
+      final email = (savedEmail == null || savedEmail.trim().isEmpty)
+          ? 'user@safeplate.local'
+          : savedEmail;
+      state = AsyncValue.data(User(id: 'local', email: email, name: null));
+    } catch (_) {
+      // Fall back to logged-out state if local session restore fails.
+      state = const AsyncValue.data(null);
+    }
+  }
 
   Future<void> login(String email, String password) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       await _authRepository.login(email: email, password: password);
       // Since API doesn't return user info, we create a local user object with the email
-      return User(id: 'local', email: email, name: '사용자');
+      return User(id: 'local', email: email, name: null);
     });
   }
 
   Future<void> signUp(String email, String password, String language) async {
     state = const AsyncValue.loading();
-    await AsyncValue.guard(
-      () => _authRepository.signUp(
+    state = await AsyncValue.guard<User?>(() async {
+      await _authRepository.signUp(
         email: email,
         password: password,
         language: language,
-      ),
-    );
-    // After signup, we might want to auto-login or just return to login screen
-    // For now, setting state to data(null) to indicate success but no user yet
-    if (!state.hasError) {
+      );
+      return null;
+    });
+  }
+
+  Future<void> logout() async {
+    try {
+      await _authRepository.logout();
+    } finally {
+      // Always clear local auth state even if storage cleanup fails.
       state = const AsyncValue.data(null);
     }
   }

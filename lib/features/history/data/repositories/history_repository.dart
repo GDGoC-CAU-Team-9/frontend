@@ -103,4 +103,45 @@ class HistoryRepository {
       rethrow;
     }
   }
+
+  /// DELETE /histories/{historyId}
+  Future<void> deleteHistory(int historyId) async {
+    try {
+      final response = await _dio.delete(
+        '/histories/$historyId',
+        options: Options(
+          validateStatus: (status) {
+            return status != null && status < 600;
+          },
+        ),
+      );
+
+      if (response.data is Map && response.data['isSuccess'] == false) {
+        throw DioException(
+          requestOptions: response.requestOptions,
+          response: response,
+          type: DioExceptionType.badResponse,
+          message: response.data['message']?.toString() ?? '기록 삭제 실패',
+        );
+      }
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        return;
+      }
+
+      final responseMessage = response.data is Map
+          ? response.data['message']?.toString()
+          : null;
+
+      throw DioException(
+        requestOptions: response.requestOptions,
+        response: response,
+        type: DioExceptionType.badResponse,
+        message: responseMessage ?? '기록 삭제 실패: ${response.statusCode}',
+      );
+    } catch (e) {
+      log('deleteHistory error: $e');
+      rethrow;
+    }
+  }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../providers/team_provider.dart';
 import '../../data/repositories/team_repository.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -20,8 +21,8 @@ class TeamDetailScreen extends ConsumerWidget {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text(
-          '팀 상세',
+        title: Text(
+          tr('team.detail_title'),
           style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.transparent,
@@ -52,7 +53,10 @@ class TeamDetailScreen extends ConsumerWidget {
               child: CircularProgressIndicator(color: Colors.teal),
             ),
             error: (err, stack) => Center(
-              child: Text('에러가 발생했습니다:\n$err', textAlign: TextAlign.center),
+              child: Text(
+                tr('team.error_with_message', namedArgs: {'message': '$err'}),
+                textAlign: TextAlign.center,
+              ),
             ),
             data: (team) {
               return SingleChildScrollView(
@@ -93,12 +97,27 @@ class TeamDetailScreen extends ConsumerWidget {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            '생성일: ${team.createdAt?.toLocal().toString().split(' ')[0] ?? '알 수 없음'}',
+                            tr(
+                              'team.created_at',
+                              namedArgs: {
+                                'date':
+                                    team.createdAt
+                                        ?.toLocal()
+                                        .toString()
+                                        .split(' ')[0] ??
+                                    tr('common.unknown'),
+                              },
+                            ),
                             style: TextStyle(color: Colors.grey.shade600),
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            '팀 ID: ${team.teamId?.toString() ?? '-'}',
+                            tr(
+                              'team.team_id',
+                              namedArgs: {
+                                'id': team.teamId?.toString() ?? '-',
+                              },
+                            ),
                             style: TextStyle(
                               color: Colors.grey.shade600,
                               fontSize: 13,
@@ -110,8 +129,8 @@ class TeamDetailScreen extends ConsumerWidget {
                     const SizedBox(height: 32),
 
                     // Members
-                    const Text(
-                      '팀 멤버',
+                    Text(
+                      tr('team.members_title'),
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -134,10 +153,10 @@ class TeamDetailScreen extends ConsumerWidget {
                             Divider(color: Colors.grey.shade300, height: 1),
                         itemBuilder: (context, index) {
                           if (team.members.isEmpty) {
-                            return const ListTile(
+                            return ListTile(
                               title: Text(
-                                '멤버 정보가 없습니다.',
-                                style: TextStyle(color: Colors.grey),
+                                tr('team.members_empty'),
+                                style: const TextStyle(color: Colors.grey),
                               ),
                             );
                           }
@@ -171,7 +190,12 @@ class TeamDetailScreen extends ConsumerWidget {
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Text(
-                                            '내 멤버 ID: ${team.teamMemberId}',
+                                            tr(
+                                              'team.my_member_id',
+                                              namedArgs: {
+                                                'id': '${team.teamMemberId}',
+                                              },
+                                            ),
                                             style: TextStyle(
                                               color: Colors.teal.shade700,
                                               fontWeight: FontWeight.w600,
@@ -211,8 +235,8 @@ class TeamDetailScreen extends ConsumerWidget {
                         onPressed: () =>
                             _showRenameDialog(context, ref, team.teamName),
                         icon: const Icon(Icons.edit),
-                        label: const Text(
-                          '팀명 변경',
+                        label: Text(
+                          tr('team.rename_button'),
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
@@ -235,8 +259,8 @@ class TeamDetailScreen extends ConsumerWidget {
                         ),
                         onPressed: () => _showExitDialog(context, ref),
                         icon: const Icon(Icons.logout),
-                        label: const Text(
-                          '팀 나가기',
+                        label: Text(
+                          tr('team.leave_button'),
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
@@ -267,14 +291,14 @@ class TeamDetailScreen extends ConsumerWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          title: const Text(
-            '팀명 변경',
+          title: Text(
+            tr('team.rename_dialog_title'),
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           content: TextField(
             controller: controller,
             decoration: InputDecoration(
-              labelText: '새로운 팀 이름',
+              labelText: tr('team.rename_label'),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -287,9 +311,9 @@ class TeamDetailScreen extends ConsumerWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text(
-                '취소',
-                style: TextStyle(
+              child: Text(
+                tr('common.cancel'),
+                style: const TextStyle(
                   color: Colors.grey,
                   fontWeight: FontWeight.bold,
                 ),
@@ -312,20 +336,22 @@ class TeamDetailScreen extends ConsumerWidget {
                         .read(teamListProvider.notifier)
                         .fetchInitial(); // refresh list
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('팀명이 변경되었습니다.')),
+                      SnackBar(content: Text(tr('team.rename_success'))),
                     );
                   }
                 } catch (e) {
                   if (context.mounted) {
                     ScaffoldMessenger.of(
                       context,
-                    ).showSnackBar(const SnackBar(content: Text('팀명 변경 실패')));
+                    ).showSnackBar(
+                      SnackBar(content: Text(tr('team.rename_failed'))),
+                    );
                   }
                 }
               },
-              child: const Text(
-                '변경',
-                style: TextStyle(
+              child: Text(
+                tr('team.change_button'),
+                style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
@@ -345,20 +371,20 @@ class TeamDetailScreen extends ConsumerWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          title: const Text(
-            '팀 나가기',
+          title: Text(
+            tr('team.leave_dialog_title'),
             style: TextStyle(
               fontWeight: FontWeight.bold,
               color: Colors.redAccent,
             ),
           ),
-          content: const Text('정말로 이 팀에서 나가시겠습니까?\n이 작업은 되돌릴 수 없습니다.'),
+          content: Text(tr('team.leave_dialog_content')),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text(
-                '취소',
-                style: TextStyle(
+              child: Text(
+                tr('common.cancel'),
+                style: const TextStyle(
                   color: Colors.grey,
                   fontWeight: FontWeight.bold,
                 ),
@@ -379,19 +405,23 @@ class TeamDetailScreen extends ConsumerWidget {
                         .fetchInitial(); // refresh list
                     ScaffoldMessenger.of(
                       context,
-                    ).showSnackBar(const SnackBar(content: Text('팀에서 나갔습니다.')));
+                    ).showSnackBar(
+                      SnackBar(content: Text(tr('team.leave_success'))),
+                    );
                   }
                 } catch (e) {
                   if (context.mounted) {
                     ScaffoldMessenger.of(
                       context,
-                    ).showSnackBar(const SnackBar(content: Text('팀 나가기 실패')));
+                    ).showSnackBar(
+                      SnackBar(content: Text(tr('team.leave_failed'))),
+                    );
                   }
                 }
               },
-              child: const Text(
-                '나가기',
-                style: TextStyle(
+              child: Text(
+                tr('team.leave_confirm_button'),
+                style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
@@ -407,7 +437,7 @@ class TeamDetailScreen extends ConsumerWidget {
     await Clipboard.setData(ClipboardData(text: text));
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('멤버 ID가 복사되었습니다.')),
+        SnackBar(content: Text(tr('team.member_id_copied'))),
       );
     }
   }

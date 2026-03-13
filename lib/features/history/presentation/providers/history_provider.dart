@@ -80,6 +80,20 @@ class HistoryListNotifier extends StateNotifier<HistoryListState> {
     state = const HistoryListState();
     await loadInitial();
   }
+
+  /// Delete one history entry, then update the local list.
+  Future<void> deleteHistory(int historyId) async {
+    try {
+      await _repository.deleteHistory(historyId);
+      state = state.copyWith(
+        items: state.items.where((item) => item.id != historyId).toList(),
+        errorMessage: null,
+      );
+    } catch (e) {
+      state = state.copyWith(errorMessage: e.toString());
+      rethrow;
+    }
+  }
 }
 
 final historyListProvider =

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/theme/app_design.dart';
 import '../providers/avoid_item_provider.dart';
 
@@ -47,7 +48,7 @@ class _AvoidInputScreenState extends ConsumerState<AvoidInputScreen>
       if (next.isSaved) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('기피재료가 저장되었습니다!'),
+            content: Text(tr('avoid.saved_success')),
             backgroundColor: Colors.teal,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -63,8 +64,8 @@ class _AvoidInputScreenState extends ConsumerState<AvoidInputScreen>
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text(
-          '기피재료 입력',
+        title: Text(
+          tr('avoid.input_title'),
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
         ),
         backgroundColor: Colors.transparent,
@@ -122,22 +123,22 @@ class _AvoidInputScreenState extends ConsumerState<AvoidInputScreen>
                                 ),
                               ),
                               const SizedBox(width: 14),
-                              const Expanded(
+                              Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'AI 기피재료 분석',
-                                      style: TextStyle(
+                                      tr('avoid.ai_title'),
+                                      style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.black87,
                                       ),
                                     ),
-                                    SizedBox(height: 4),
+                                    const SizedBox(height: 4),
                                     Text(
-                                      '자연어로 식이 제한을 입력하면\nAI가 기피재료를 추출합니다.',
-                                      style: TextStyle(
+                                      tr('avoid.ai_desc'),
+                                      style: const TextStyle(
                                         fontSize: 13,
                                         color: Colors.black54,
                                         height: 1.4,
@@ -165,8 +166,7 @@ class _AvoidInputScreenState extends ConsumerState<AvoidInputScreen>
                               height: 1.5,
                             ),
                             decoration: InputDecoration(
-                              hintText:
-                                  '예: 나는 비건이고 힌두교야\n예: I have a peanut allergy and I\'m lactose intolerant',
+                              hintText: tr('avoid.input_hint'),
                               hintStyle: TextStyle(
                                 fontSize: 14,
                                 color: Colors.grey.shade400,
@@ -204,18 +204,18 @@ class _AvoidInputScreenState extends ConsumerState<AvoidInputScreen>
                                       color: Colors.white,
                                     ),
                                   )
-                                : const Row(
+                                : Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(
+                                      const Icon(
                                         Icons.auto_awesome,
                                         color: Colors.white,
                                         size: 20,
                                       ),
-                                      SizedBox(width: 8),
+                                      const SizedBox(width: 8),
                                       Text(
-                                        'AI 분석하기',
-                                        style: TextStyle(
+                                        tr('avoid.analyze_button'),
+                                        style: const TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold,
                                           color: Colors.white,
@@ -246,7 +246,7 @@ class _AvoidInputScreenState extends ConsumerState<AvoidInputScreen>
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    '분석에 실패했습니다. 다시 시도해주세요.',
+                                    tr('avoid.analyze_failed'),
                                     style: TextStyle(
                                       fontSize: 13,
                                       color: Colors.red.shade700,
@@ -303,8 +303,8 @@ class _AvoidInputScreenState extends ConsumerState<AvoidInputScreen>
                                     ),
                                   ),
 
-                                const Text(
-                                  '추출된 기피재료',
+                                Text(
+                                  tr('avoid.extracted_title'),
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
@@ -313,7 +313,7 @@ class _AvoidInputScreenState extends ConsumerState<AvoidInputScreen>
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  '태그를 탭하여 제외할 수 있습니다.',
+                                  tr('avoid.extracted_desc'),
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: Colors.grey.shade500,
@@ -344,9 +344,9 @@ class _AvoidInputScreenState extends ConsumerState<AvoidInputScreen>
                                       Icons.save_alt,
                                       color: Colors.white,
                                     ),
-                                    label: const Text(
-                                      '기피재료 저장',
-                                      style: TextStyle(
+                                    label: Text(
+                                      tr('avoid.save_button'),
+                                      style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.white,
@@ -423,7 +423,7 @@ class _AvoidInputScreenState extends ConsumerState<AvoidInputScreen>
     if (text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('기피 정보를 입력해주세요.'),
+          content: Text(tr('avoid.empty_input')),
           backgroundColor: Colors.orange.shade600,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
