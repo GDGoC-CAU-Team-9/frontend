@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'dart:io';
 import '../providers/menu_provider.dart';
-import '../../data/repositories/menu_repository.dart';
 import '../../../../core/theme/app_design.dart';
 
 class AnalysisResultScreen extends ConsumerStatefulWidget {
