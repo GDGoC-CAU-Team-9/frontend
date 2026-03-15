@@ -55,6 +55,12 @@ class HistoryDetailScreen extends StatelessWidget {
     }
   }
 
+  String _menuNameOrUnknown(String menuName) {
+    final normalized = menuName.trim();
+    if (normalized.isEmpty) return tr('common.unknown');
+    return normalized;
+  }
+
   void _showFullImage(BuildContext context, String imageUrl) {
     showDialog(
       context: context,
@@ -144,7 +150,7 @@ class HistoryDetailScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 1),
                 Text(
-                  best.menuName,
+                  _menuNameOrUnknown(best.menuName),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -202,7 +208,7 @@ class HistoryDetailScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  item.menuName,
+                  _menuNameOrUnknown(item.menuName),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(

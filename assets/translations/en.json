@@ -141,7 +141,8 @@
     "leave_success": "Left the team.",
     "leave_failed": "Failed to leave team.",
     "leave_confirm_button": "Leave",
-    "member_id_copied": "Member ID copied."
+    "member_id_copied": "Member ID copied.",
+    "me_badge": "ME"
   },
   "history_detail": {
     "title": "Analysis Result",
@@ -164,6 +165,14 @@
     "step_risk": "Assess allergy risk",
     "failed_title": "Menu analysis failed.",
     "back_to_previous": "Back"
+  },
+  "camera": {
+    "no_cameras_found": "No cameras found.",
+    "camera_error_with_message": "Camera error: {message}. Make sure no other app is using it.",
+    "capture_failed_with_message": "Failed to capture image: {message}",
+    "use_gallery": "Use Gallery",
+    "initializing": "Initializing Camera...",
+    "use_gallery_instead": "Use Gallery instead"
   },
   "analysis_result": {
     "analyzing": "AI is analyzing the menu image...",

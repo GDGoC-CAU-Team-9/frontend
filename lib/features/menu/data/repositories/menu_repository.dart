@@ -34,7 +34,7 @@ class MenuAnalysisResult {
     }
 
     return MenuAnalysisResult(
-      menuName: json['menu'] ?? 'Unknown',
+      menuName: (json['menu'] ?? '').toString().trim(),
       safetyScore: json['score'] ?? 0,
       reason: json['reason'] ?? json['reason_ko'] ?? '',
       safetyLevel: safetyLevel,

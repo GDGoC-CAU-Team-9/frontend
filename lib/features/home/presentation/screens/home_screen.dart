@@ -830,7 +830,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 icon: Icons.thumb_up_alt_outlined,
                                 label: tr(
                                   'home.chip_best',
-                                  namedArgs: {'name': item.best!.menuName},
+                                  namedArgs: {
+                                    'name': _menuNameOrUnknown(
+                                      item.best!.menuName,
+                                    ),
+                                  },
                                 ),
                                 style: _HistoryChipStyle.recommendation,
                               )
@@ -1038,6 +1042,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return '${date.year}.${date.month.toString().padLeft(2, '0')}.${date.day.toString().padLeft(2, '0')}';
   }
 
+  String _menuNameOrUnknown(String menuName) {
+    final normalized = menuName.trim();
+    if (normalized.isEmpty) return tr('common.unknown');
+    return normalized;
+  }
+
   @override
   Widget build(BuildContext context) {
     final historyState = ref.watch(historyListProvider);
@@ -1187,7 +1197,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          user?.email ?? 'guest@example.com',
+                          user?.email ?? tr('common.unknown'),
                           style: const TextStyle(
                             color: Color(0xFF5D6F6E),
                             fontSize: 13,

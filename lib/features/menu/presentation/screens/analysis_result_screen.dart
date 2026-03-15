@@ -111,6 +111,12 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen> {
     }
   }
 
+  String _menuNameOrUnknown(String menuName) {
+    final normalized = menuName.trim();
+    if (normalized.isEmpty) return tr('common.unknown');
+    return normalized;
+  }
+
   MenuAnalysisResult? _pickBest(List<MenuAnalysisResult> results) {
     if (results.isEmpty) return null;
     final sorted = [...results]
@@ -180,7 +186,7 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen> {
                 ),
                 const SizedBox(height: 1),
                 Text(
-                  best.menuName,
+                  _menuNameOrUnknown(best.menuName),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -238,7 +244,7 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen> {
             children: [
               Expanded(
                 child: Text(
-                  item.menuName,
+                  _menuNameOrUnknown(item.menuName),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(

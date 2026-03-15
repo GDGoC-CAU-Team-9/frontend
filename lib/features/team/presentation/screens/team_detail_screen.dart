@@ -354,9 +354,9 @@ class TeamDetailScreen extends ConsumerWidget {
                 color: const Color(0xFF0F8E83).withOpacity(0.15),
                 borderRadius: BorderRadius.circular(999),
               ),
-              child: const Text(
-                'ME',
-                style: TextStyle(
+              child: Text(
+                tr('team.me_badge'),
+                style: const TextStyle(
                   color: Color(0xFF0F8E83),
                   fontWeight: FontWeight.w800,
                   fontSize: 9,

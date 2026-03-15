@@ -141,7 +141,8 @@
     "leave_success": "팀에서 나갔습니다.",
     "leave_failed": "팀 나가기 실패",
     "leave_confirm_button": "나가기",
-    "member_id_copied": "멤버 ID가 복사되었습니다."
+    "member_id_copied": "멤버 ID가 복사되었습니다.",
+    "me_badge": "나"
   },
   "history_detail": {
     "title": "분석 결과",
@@ -164,6 +165,14 @@
     "step_risk": "알러지 위험 진단",
     "failed_title": "메뉴 분석에 실패했습니다.",
     "back_to_previous": "이전 화면으로"
+  },
+  "camera": {
+    "no_cameras_found": "사용 가능한 카메라를 찾을 수 없습니다.",
+    "camera_error_with_message": "카메라 오류: {message}. 다른 앱에서 카메라를 사용 중인지 확인하세요.",
+    "capture_failed_with_message": "사진 촬영에 실패했습니다: {message}",
+    "use_gallery": "갤러리 사용",
+    "initializing": "카메라를 초기화하는 중...",
+    "use_gallery_instead": "대신 갤러리 사용"
   },
   "analysis_result": {
     "analyzing": "AI가 메뉴판을 분석 중입니다...",
