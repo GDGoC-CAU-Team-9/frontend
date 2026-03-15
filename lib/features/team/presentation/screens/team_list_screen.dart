@@ -1,13 +1,21 @@
 import 'dart:ui';
+
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:easy_localization/easy_localization.dart';
+
 import '../providers/team_provider.dart';
-import '../../../../core/theme/app_design.dart';
 
 class TeamListScreen extends ConsumerWidget {
   const TeamListScreen({super.key});
+
+  static const LinearGradient _backgroundGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [Color(0xFFE8F2F1), Color(0xFFF2F7F6), Color(0xFFFCFEFD)],
+    stops: [0, 0.55, 1],
+  );
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -16,115 +24,210 @@ class TeamListScreen extends ConsumerWidget {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text(
-          tr('team.manage_title'),
-          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
+        title: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.45),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: Colors.white.withOpacity(0.8)),
+          ),
+          child: Text(
+            tr('team.manage_title'),
+            style: const TextStyle(
+              color: Color(0xFF1F3030),
+              fontWeight: FontWeight.w800,
+              fontSize: 18,
+            ),
+          ),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        leading: Builder(
-          builder: (context) => Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.5),
-                shape: BoxShape.circle,
-              ),
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-                color: Colors.black87,
-                onPressed: () => context.pop(),
-              ),
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.65),
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white.withOpacity(0.9)),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+              color: const Color(0xFF253636),
+              onPressed: () => context.pop(),
             ),
           ),
         ),
       ),
       body: Container(
-        decoration: const BoxDecoration(gradient: AppDesign.backgroundGradient),
+        decoration: const BoxDecoration(gradient: _backgroundGradient),
         child: SafeArea(
           child: teamState.when(
             loading: () => const Center(
-              child: CircularProgressIndicator(color: Colors.teal),
+              child: CircularProgressIndicator(color: Color(0xFF0F8E83)),
             ),
             error: (err, stack) => Center(
-              child: Text(
-                tr('team.error_with_message', namedArgs: {'message': '$err'}),
-                textAlign: TextAlign.center,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Text(
+                  tr('team.error_with_message', namedArgs: {'message': '$err'}),
+                  textAlign: TextAlign.center,
+                ),
               ),
             ),
             data: (teams) {
-              if (teams.isEmpty) {
-                return Center(
-                  child: Text(
-                    tr('team.empty_state'),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.black87,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                );
-              }
-              return ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: teams.length,
-                itemBuilder: (context, index) {
-                  final team = teams[index];
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    elevation: 2,
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 12,
-                      ),
-                      leading: CircleAvatar(
-                        backgroundColor: Colors.teal.shade100,
-                        child: const Icon(Icons.group, color: Colors.teal),
-                      ),
-                      title: Text(
-                        team.teamName,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
+              if (teams.isEmpty) return _buildEmptyState();
+
+              return RefreshIndicator(
+                color: const Color(0xFF0F8E83),
+                onRefresh: () =>
+                    ref.read(teamListProvider.notifier).fetchInitial(),
+                child: ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 92),
+                  itemCount: teams.length,
+                  itemBuilder: (context, index) {
+                    final team = teams[index];
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.62),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.9),
                         ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF8DAEA8).withOpacity(0.2),
+                            blurRadius: 12,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
                       ),
-                      subtitle: Text(
-                        tr(
-                          'team.my_member_id',
-                          namedArgs: {'id': '${team.teamMemberId}'},
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
                         ),
+                        leading: Container(
+                          width: 54,
+                          height: 54,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: const Color(0xFF0F8E83).withOpacity(0.12),
+                          ),
+                          child: const Icon(
+                            Icons.groups_2_rounded,
+                            color: Color(0xFF0F8E83),
+                            size: 28,
+                          ),
+                        ),
+                        title: Text(
+                          team.teamName,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 17,
+                            color: Color(0xFF213434),
+                          ),
+                        ),
+                        subtitle: Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            tr(
+                              'team.my_member_id',
+                              namedArgs: {'id': '${team.teamMemberId}'},
+                            ),
+                            style: const TextStyle(
+                              color: Color(0xFF4E6462),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        trailing: const Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          size: 16,
+                          color: Color(0xFF708483),
+                        ),
+                        onTap: () =>
+                            context.push('/teams/${team.teamMemberId}'),
                       ),
-                      trailing: const Icon(
-                        Icons.arrow_forward_ios_rounded,
-                        size: 16,
-                        color: Colors.grey,
-                      ),
-                      onTap: () {
-                        context.push('/teams/${team.teamMemberId}');
-                      },
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               );
             },
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showTeamActionDialog(context, ref),
-        backgroundColor: Colors.teal,
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: Text(
-          tr('team.add_button'),
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
+      floatingActionButton: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF17A89B), Color(0xFF0D847B)],
+          ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF0D847B).withOpacity(0.35),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: FloatingActionButton.extended(
+          onPressed: () => _showTeamActionDialog(context, ref),
+          backgroundColor: Colors.transparent,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          icon: const Icon(Icons.add_rounded),
+          label: Text(
+            tr('team.add_button'),
+            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(28.0),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.62),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white.withOpacity(0.9)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 74,
+                height: 74,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFF0F8E83).withOpacity(0.12),
+                ),
+                child: const Icon(
+                  Icons.groups_rounded,
+                  size: 34,
+                  color: Color(0xFF0F8E83),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                tr('team.empty_state'),
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Color(0xFF4E6462),
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  height: 1.4,
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -147,33 +250,33 @@ class TeamListScreen extends ConsumerWidget {
                 width: 40,
                 height: 5,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.5),
+                  color: Colors.white.withOpacity(0.7),
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
               _buildActionItem(
                 context,
-                icon: Icons.group_add,
+                icon: Icons.group_add_rounded,
                 text: tr('team.create_new'),
-                color: Colors.teal,
+                color: const Color(0xFF0F8E83),
                 onTap: () {
                   Navigator.pop(context);
                   _showCreateTeamDialog(context, ref);
                 },
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               _buildActionItem(
                 context,
                 icon: Icons.login_rounded,
                 text: tr('team.join_existing'),
-                color: Colors.blueAccent,
+                color: const Color(0xFF2C74D8),
                 onTap: () {
                   Navigator.pop(context);
                   _showJoinTeamDialog(context, ref);
                 },
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 8),
             ],
           ),
         ),
@@ -192,35 +295,37 @@ class TeamListScreen extends ConsumerWidget {
       onTap: onTap,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
-        decoration: AppDesign.glassDecoration.copyWith(
-          color: Colors.white.withOpacity(0.85),
-          borderRadius: BorderRadius.circular(25),
+        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 18),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.82),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white.withOpacity(0.95)),
         ),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withOpacity(0.12),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: color, size: 28),
+              child: Icon(icon, color: color, size: 24),
             ),
-            const SizedBox(width: 20),
-            Text(
-              text,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                text,
+                style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF233535),
+                ),
               ),
             ),
-            const Spacer(),
             Icon(
               Icons.arrow_forward_ios_rounded,
-              size: 18,
-              color: Colors.grey.shade400,
+              size: 16,
+              color: color.withOpacity(0.75),
             ),
           ],
         ),
@@ -235,39 +340,36 @@ class TeamListScreen extends ConsumerWidget {
       builder: (context) {
         return AlertDialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(18),
           ),
           title: Text(
             tr('team.create_dialog_title'),
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: const TextStyle(fontWeight: FontWeight.w700),
           ),
           content: TextField(
             controller: controller,
             decoration: InputDecoration(
               labelText: tr('team.team_name_label'),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(12),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Colors.teal, width: 2),
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                  color: Color(0xFF0F8E83),
+                  width: 2,
+                ),
               ),
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text(
-                tr('common.cancel'),
-                style: const TextStyle(
-                  color: Colors.grey,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              child: Text(tr('common.cancel')),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.teal,
+                backgroundColor: const Color(0xFF0F8E83),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -279,15 +381,11 @@ class TeamListScreen extends ConsumerWidget {
                     .createTeam(controller.text.trim());
                 if (success && context.mounted) {
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(
+                  ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text(tr('team.create_success'))),
                   );
                 } else if (!success && context.mounted) {
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(
+                  ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text(tr('team.create_failed'))),
                   );
                 }
@@ -296,7 +394,7 @@ class TeamListScreen extends ConsumerWidget {
                 tr('common.create'),
                 style: const TextStyle(
                   color: Colors.white,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ),
@@ -316,11 +414,11 @@ class TeamListScreen extends ConsumerWidget {
       builder: (context) {
         return AlertDialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(18),
           ),
           title: Text(
             tr('team.join_dialog_title'),
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: const TextStyle(fontWeight: FontWeight.w700),
           ),
           content: SingleChildScrollView(
             child: Column(
@@ -331,7 +429,7 @@ class TeamListScreen extends ConsumerWidget {
                   decoration: InputDecoration(
                     labelText: tr('team.inviter_email_label'),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                 ),
@@ -342,7 +440,7 @@ class TeamListScreen extends ConsumerWidget {
                   decoration: InputDecoration(
                     labelText: tr('team.inviter_member_id_label'),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                 ),
@@ -352,7 +450,7 @@ class TeamListScreen extends ConsumerWidget {
                   decoration: InputDecoration(
                     labelText: tr('team.my_group_name_label'),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                 ),
@@ -362,17 +460,11 @@ class TeamListScreen extends ConsumerWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text(
-                tr('common.cancel'),
-                style: const TextStyle(
-                  color: Colors.grey,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              child: Text(tr('common.cancel')),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.teal,
+                backgroundColor: const Color(0xFF0F8E83),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -380,8 +472,9 @@ class TeamListScreen extends ConsumerWidget {
               onPressed: () async {
                 if (emailCtrl.text.isEmpty ||
                     idCtrl.text.isEmpty ||
-                    nameCtrl.text.isEmpty)
+                    nameCtrl.text.isEmpty) {
                   return;
+                }
                 final success = await ref
                     .read(teamListProvider.notifier)
                     .joinTeam(
@@ -391,9 +484,7 @@ class TeamListScreen extends ConsumerWidget {
                     );
                 if (success && context.mounted) {
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(
+                  ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text(tr('team.join_success'))),
                   );
                 } else if (!success && context.mounted) {
@@ -406,7 +497,7 @@ class TeamListScreen extends ConsumerWidget {
                 tr('common.join'),
                 style: const TextStyle(
                   color: Colors.white,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ),

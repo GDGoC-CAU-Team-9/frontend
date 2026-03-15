@@ -1,17 +1,25 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:easy_localization/easy_localization.dart';
-import '../providers/team_provider.dart';
-import '../../data/repositories/team_repository.dart';
+
 import '../../../auth/presentation/providers/auth_provider.dart';
-import '../../../../core/theme/app_design.dart';
-import 'package:flutter/services.dart';
+import '../../data/models/team_model.dart';
+import '../../data/repositories/team_repository.dart';
+import '../providers/team_provider.dart';
 
 class TeamDetailScreen extends ConsumerWidget {
   final int teamMemberId;
 
   const TeamDetailScreen({super.key, required this.teamMemberId});
+
+  static const LinearGradient _backgroundGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [Color(0xFFE8F2F1), Color(0xFFF2F7F6), Color(0xFFFCFEFD)],
+    stops: [0, 0.55, 1],
+  );
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -21,252 +29,137 @@ class TeamDetailScreen extends ConsumerWidget {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text(
-          tr('team.detail_title'),
-          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
+        title: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.45),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: Colors.white.withOpacity(0.8)),
+          ),
+          child: Text(
+            tr('team.detail_title'),
+            style: const TextStyle(
+              color: Color(0xFF1F3030),
+              fontWeight: FontWeight.w800,
+              fontSize: 18,
+            ),
+          ),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        leading: Builder(
-          builder: (context) => Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.5),
-                shape: BoxShape.circle,
-              ),
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-                color: Colors.black87,
-                onPressed: () => context.pop(),
-              ),
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.65),
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white.withOpacity(0.9)),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+              color: const Color(0xFF253636),
+              onPressed: () => context.pop(),
             ),
           ),
         ),
       ),
       body: Container(
-        decoration: const BoxDecoration(gradient: AppDesign.backgroundGradient),
+        decoration: const BoxDecoration(gradient: _backgroundGradient),
         child: SafeArea(
           child: detailState.when(
             loading: () => const Center(
-              child: CircularProgressIndicator(color: Colors.teal),
+              child: CircularProgressIndicator(color: Color(0xFF0F8E83)),
             ),
             error: (err, stack) => Center(
-              child: Text(
-                tr('team.error_with_message', namedArgs: {'message': '$err'}),
-                textAlign: TextAlign.center,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Text(
+                  tr('team.error_with_message', namedArgs: {'message': '$err'}),
+                  textAlign: TextAlign.center,
+                ),
               ),
             ),
             data: (team) {
               return SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Team Name Card
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(24),
-                      decoration: AppDesign.glassDecoration.copyWith(
-                        color: Colors.white.withOpacity(0.8),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Column(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.teal.shade50,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.group,
-                              size: 40,
-                              color: Colors.teal,
-                            ),
+                    _buildTeamHeaderCard(context, team),
+                    const SizedBox(height: 14),
+                    _buildMyIdCard(context, team.teamMemberId.toString()),
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Text(
+                          tr('team.members_title'),
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF1F3030),
                           ),
-                          const SizedBox(height: 16),
-                          Text(
-                            team.teamName,
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF0F8E83).withOpacity(0.14),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            '${team.members.length}',
                             style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
+                              color: Color(0xFF0F8E83),
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            tr(
-                              'team.created_at',
-                              namedArgs: {
-                                'date':
-                                    team.createdAt
-                                        ?.toLocal()
-                                        .toString()
-                                        .split(' ')[0] ??
-                                    tr('common.unknown'),
-                              },
-                            ),
-                            style: TextStyle(color: Colors.grey.shade600),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            tr(
-                              'team.team_id',
-                              namedArgs: {
-                                'id': team.teamId?.toString() ?? '-',
-                              },
-                            ),
-                            style: TextStyle(
-                              color: Colors.grey.shade600,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-
-                    // Members
-                    Text(
-                      tr('team.members_title'),
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 12),
-                    Container(
-                      decoration: AppDesign.glassDecoration.copyWith(
-                        color: Colors.white.withOpacity(0.8),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: ListView.separated(
+                    if (team.members.isEmpty)
+                      _buildMembersEmpty()
+                    else
+                      GridView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        itemCount: team.members.isEmpty
-                            ? 1
-                            : team.members.length,
-                        separatorBuilder: (context, index) =>
-                            Divider(color: Colors.grey.shade300, height: 1),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              mainAxisSpacing: 10,
+                              crossAxisSpacing: 10,
+                              childAspectRatio: 1.12,
+                            ),
+                        itemCount: team.members.length,
                         itemBuilder: (context, index) {
-                          if (team.members.isEmpty) {
-                            return ListTile(
-                              title: Text(
-                                tr('team.members_empty'),
-                                style: const TextStyle(color: Colors.grey),
-                              ),
-                            );
-                          }
                           final memberEmail = team.members[index];
                           final isMe =
                               currentUserEmail != null &&
                               currentUserEmail == memberEmail;
-                          return ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: Colors.teal,
-                              child: Text(
-                                memberEmail.substring(0, 1).toUpperCase(),
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                            ),
-                            title: Text(
-                              memberEmail,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            subtitle: isMe
-                                ? Padding(
-                                    padding: const EdgeInsets.only(top: 4),
-                                    child: GestureDetector(
-                                      onTap: () => _copyToClipboard(
-                                        context,
-                                        team.teamMemberId.toString(),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(
-                                            tr(
-                                              'team.my_member_id',
-                                              namedArgs: {
-                                                'id': '${team.teamMemberId}',
-                                              },
-                                            ),
-                                            style: TextStyle(
-                                              color: Colors.teal.shade700,
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 6),
-                                          const Icon(
-                                            Icons.copy,
-                                            size: 14,
-                                            color: Colors.teal,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  )
-                                : null,
+                          return _buildMemberCard(
+                            memberEmail: memberEmail,
+                            isMe: isMe,
                           );
                         },
                       ),
+                    const SizedBox(height: 22),
+                    _buildActionButton(
+                      label: tr('team.rename_button'),
+                      icon: Icons.edit_rounded,
+                      colors: const [Color(0xFF17A89B), Color(0xFF0D847B)],
+                      onPressed: () =>
+                          _showRenameDialog(context, ref, team.teamName),
                     ),
-                    const SizedBox(height: 48),
-
-                    // Actions
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white.withOpacity(0.8),
-                          foregroundColor: Colors.teal,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          elevation: 0,
-                        ),
-                        onPressed: () =>
-                            _showRenameDialog(context, ref, team.teamName),
-                        icon: const Icon(Icons.edit),
-                        label: Text(
-                          tr('team.rename_button'),
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red.shade50.withOpacity(0.8),
-                          foregroundColor: Colors.redAccent,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          elevation: 0,
-                        ),
-                        onPressed: () => _showExitDialog(context, ref),
-                        icon: const Icon(Icons.logout),
-                        label: Text(
-                          tr('team.leave_button'),
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
+                    const SizedBox(height: 10),
+                    _buildActionButton(
+                      label: tr('team.leave_button'),
+                      icon: Icons.logout_rounded,
+                      colors: const [Color(0xFFE88485), Color(0xFFDF7176)],
+                      onPressed: () => _showExitDialog(context, ref),
                     ),
                   ],
                 ),
@@ -276,6 +169,289 @@ class TeamDetailScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildTeamHeaderCard(BuildContext context, TeamModel team) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.64),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withOpacity(0.9)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF8DAEA8).withOpacity(0.2),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 90,
+            height: 90,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFF0F8E83).withOpacity(0.12),
+            ),
+            child: const Icon(
+              Icons.groups_rounded,
+              size: 42,
+              color: Color(0xFF0F8E83),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            team.teamName,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF1F3030),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            tr(
+              'team.created_at',
+              namedArgs: {
+                'date':
+                    team.createdAt?.toLocal().toString().split(' ')[0] ??
+                    tr('common.unknown'),
+              },
+            ),
+            style: const TextStyle(color: Color(0xFF5F7070), fontSize: 13),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            tr(
+              'team.team_id',
+              namedArgs: {'id': team.teamId?.toString() ?? '-'},
+            ),
+            style: const TextStyle(
+              color: Color(0xFF5F7070),
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMyIdCard(BuildContext context, String myId) {
+    return GestureDetector(
+      onTap: () => _copyToClipboard(context, myId),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.6),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.white.withOpacity(0.9)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF0F8E83).withOpacity(0.12),
+              ),
+              child: const Icon(
+                Icons.badge_outlined,
+                color: Color(0xFF0F8E83),
+                size: 19,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                tr('team.my_member_id', namedArgs: {'id': myId}),
+                style: const TextStyle(
+                  color: Color(0xFF0F8E83),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            const Icon(Icons.copy_rounded, size: 18, color: Color(0xFF0F8E83)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMembersEmpty() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.58),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.9)),
+      ),
+      child: Text(
+        tr('team.members_empty'),
+        style: const TextStyle(
+          color: Color(0xFF5F7070),
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMemberCard({required String memberEmail, required bool isMe}) {
+    final accentColor = isMe
+        ? const Color(0xFF0F8E83)
+        : const Color(0xFF2E7AAE);
+    final displayName = _displayNameFromEmail(memberEmail);
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(10, 8, 10, 7),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.62),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.92)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF8DAEA8).withOpacity(0.14),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          _buildPhotoAvatar(accentColor: accentColor),
+          const SizedBox(height: 5),
+          Text(
+            displayName,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF1F3030),
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            memberEmail,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 10, color: Color(0xFF607272)),
+          ),
+          if (isMe) ...[
+            const SizedBox(height: 5),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0F8E83).withOpacity(0.15),
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: const Text(
+                'ME',
+                style: TextStyle(
+                  color: Color(0xFF0F8E83),
+                  fontWeight: FontWeight.w800,
+                  fontSize: 9,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPhotoAvatar({required Color accentColor}) {
+    return Container(
+      width: 52,
+      height: 52,
+      padding: const EdgeInsets.all(2),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: accentColor.withOpacity(0.45), width: 1.4),
+      ),
+      child: ClipOval(
+        child: Image.asset(
+          'assets/image/team_p.png',
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => Container(
+            color: accentColor.withOpacity(0.12),
+            child: Icon(Icons.person_rounded, color: accentColor, size: 20),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButton({
+    required String label,
+    required IconData icon,
+    required List<Color> colors,
+    required VoidCallback onPressed,
+  }) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: colors,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: colors.last.withOpacity(0.28),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: SizedBox(
+        width: double.infinity,
+        height: 50,
+        child: ElevatedButton.icon(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.transparent,
+            foregroundColor: Colors.white,
+            shadowColor: Colors.transparent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+          onPressed: onPressed,
+          icon: Icon(icon),
+          label: Text(
+            label,
+            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _displayNameFromEmail(String email) {
+    final local = email.split('@').first.trim();
+    if (local.isEmpty) return email;
+    final words = local
+        .replaceAll(RegExp(r'[._-]+'), ' ')
+        .split(' ')
+        .where((w) => w.isNotEmpty)
+        .toList();
+    if (words.isEmpty) return local;
+    return words
+        .map(
+          (w) => w.length > 1
+              ? '${w[0].toUpperCase()}${w.substring(1)}'
+              : w.toUpperCase(),
+        )
+        .join(' ');
   }
 
   void _showRenameDialog(
@@ -289,42 +465,42 @@ class TeamDetailScreen extends ConsumerWidget {
       builder: (context) {
         return AlertDialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(18),
           ),
           title: Text(
             tr('team.rename_dialog_title'),
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: const TextStyle(fontWeight: FontWeight.w700),
           ),
           content: TextField(
             controller: controller,
             decoration: InputDecoration(
               labelText: tr('team.rename_label'),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(12),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Colors.teal, width: 2),
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                  color: Color(0xFF0F8E83),
+                  width: 2,
+                ),
               ),
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text(
-                tr('common.cancel'),
-                style: const TextStyle(
-                  color: Colors.grey,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              child: Text(tr('common.cancel')),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF0F8E83),
+              ),
               onPressed: () async {
                 if (controller.text.trim().isEmpty ||
-                    controller.text.trim() == currentName)
+                    controller.text.trim() == currentName) {
                   return;
+                }
                 try {
                   await ref
                       .read(teamRepositoryProvider)
@@ -332,18 +508,14 @@ class TeamDetailScreen extends ConsumerWidget {
                   if (context.mounted) {
                     Navigator.pop(context);
                     ref.invalidate(teamDetailProvider(teamMemberId));
-                    ref
-                        .read(teamListProvider.notifier)
-                        .fetchInitial(); // refresh list
+                    ref.read(teamListProvider.notifier).fetchInitial();
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text(tr('team.rename_success'))),
                     );
                   }
                 } catch (e) {
                   if (context.mounted) {
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(
+                    ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text(tr('team.rename_failed'))),
                     );
                   }
@@ -353,7 +525,7 @@ class TeamDetailScreen extends ConsumerWidget {
                 tr('team.change_button'),
                 style: const TextStyle(
                   color: Colors.white,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ),
@@ -369,51 +541,39 @@ class TeamDetailScreen extends ConsumerWidget {
       builder: (context) {
         return AlertDialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(18),
           ),
           title: Text(
             tr('team.leave_dialog_title'),
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.redAccent,
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              color: Color(0xFFD94B3A),
             ),
           ),
           content: Text(tr('team.leave_dialog_content')),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text(
-                tr('common.cancel'),
-                style: const TextStyle(
-                  color: Colors.grey,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              child: Text(tr('common.cancel')),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.redAccent,
+                backgroundColor: const Color(0xFFD94B3A),
               ),
               onPressed: () async {
                 try {
                   await ref.read(teamRepositoryProvider).exitTeam(teamMemberId);
                   if (context.mounted) {
-                    Navigator.pop(context); // dialog
-                    context.pop(); // exit screen
-                    ref
-                        .read(teamListProvider.notifier)
-                        .fetchInitial(); // refresh list
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(
+                    Navigator.pop(context);
+                    context.pop();
+                    ref.read(teamListProvider.notifier).fetchInitial();
+                    ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text(tr('team.leave_success'))),
                     );
                   }
                 } catch (e) {
                   if (context.mounted) {
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(
+                    ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text(tr('team.leave_failed'))),
                     );
                   }
@@ -423,7 +583,7 @@ class TeamDetailScreen extends ConsumerWidget {
                 tr('team.leave_confirm_button'),
                 style: const TextStyle(
                   color: Colors.white,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ),
@@ -436,9 +596,9 @@ class TeamDetailScreen extends ConsumerWidget {
   Future<void> _copyToClipboard(BuildContext context, String text) async {
     await Clipboard.setData(ClipboardData(text: text));
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(tr('team.member_id_copied'))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(tr('team.member_id_copied'))));
     }
   }
 }
