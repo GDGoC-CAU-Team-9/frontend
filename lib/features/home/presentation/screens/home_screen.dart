@@ -13,6 +13,7 @@ import '../../../team/presentation/providers/team_provider.dart';
 import '../../../../core/theme/app_design.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/utils/error_utils.dart';
+import '../../../../shared/widgets/safeplate_dialog.dart';
 
 enum _HistoryChipStyle { recommendation, menuCount }
 
@@ -886,21 +887,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Future<void> _confirmDeleteHistory(HistoryItem item) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(tr('home.history_delete_title')),
-          content: Text(tr('home.history_delete_content')),
+      builder: (dialogContext) {
+        return SafePlateDialog(
+          icon: Icons.delete_outline_rounded,
+          accentColor: const Color(0xFFD94B3A),
+          title: tr('home.history_delete_title'),
+          message: tr('home.history_delete_content'),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text(tr('common.cancel')),
+            SafePlateDialogButton.ghost(
+              label: tr('common.cancel'),
+              onPressed: () => Navigator.of(dialogContext).pop(false),
             ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: Text(
-                tr('common.delete'),
-                style: const TextStyle(color: Colors.redAccent),
-              ),
+            SafePlateDialogButton.filled(
+              label: tr('common.delete'),
+              accentColor: const Color(0xFFD94B3A),
+              onPressed: () => Navigator.of(dialogContext).pop(true),
             ),
           ],
         );

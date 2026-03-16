@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../shared/widgets/safeplate_dialog.dart';
 import '../providers/team_provider.dart';
 
 class TeamListScreen extends ConsumerWidget {
@@ -235,10 +236,11 @@ class TeamListScreen extends ConsumerWidget {
   }
 
   void _showTeamActionDialog(BuildContext context, WidgetRef ref) {
+    final parentContext = context;
     showModalBottomSheet(
-      context: context,
+      context: parentContext,
       backgroundColor: Colors.transparent,
-      builder: (context) => BackdropFilter(
+      builder: (sheetContext) => BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
         child: Container(
           padding: const EdgeInsets.all(24),
@@ -256,24 +258,24 @@ class TeamListScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 20),
               _buildActionItem(
-                context,
+                sheetContext,
                 icon: Icons.group_add_rounded,
                 text: tr('team.create_new'),
                 color: const Color(0xFF0F8E83),
                 onTap: () {
-                  Navigator.pop(context);
-                  _showCreateTeamDialog(context, ref);
+                  Navigator.pop(sheetContext);
+                  _showCreateTeamDialog(parentContext, ref);
                 },
               ),
               const SizedBox(height: 12),
               _buildActionItem(
-                context,
+                sheetContext,
                 icon: Icons.login_rounded,
                 text: tr('team.join_existing'),
                 color: const Color(0xFF2C74D8),
                 onTap: () {
-                  Navigator.pop(context);
-                  _showJoinTeamDialog(context, ref);
+                  Navigator.pop(sheetContext);
+                  _showJoinTeamDialog(parentContext, ref);
                 },
               ),
               const SizedBox(height: 8),
@@ -337,66 +339,49 @@ class TeamListScreen extends ConsumerWidget {
     final controller = TextEditingController();
     showDialog(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-          ),
-          title: Text(
-            tr('team.create_dialog_title'),
-            style: const TextStyle(fontWeight: FontWeight.w700),
-          ),
+      builder: (dialogContext) {
+        return SafePlateDialog(
+          icon: Icons.add_home_work_rounded,
+          accentColor: const Color(0xFF0F8E83),
+          title: tr('team.create_dialog_title'),
           content: TextField(
             controller: controller,
-            decoration: InputDecoration(
+            autofocus: true,
+            textInputAction: TextInputAction.done,
+            decoration: safePlateDialogInputDecoration(
               labelText: tr('team.team_name_label'),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(
-                  color: Color(0xFF0F8E83),
-                  width: 2,
-                ),
-              ),
             ),
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(tr('common.cancel')),
+            SafePlateDialogButton.ghost(
+              label: tr('common.cancel'),
+              onPressed: () => Navigator.pop(dialogContext),
             ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0F8E83),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
+            SafePlateDialogButton.filled(
+              label: tr('common.create'),
               onPressed: () async {
-                if (controller.text.trim().isEmpty) return;
+                final teamName = controller.text.trim();
+                if (teamName.isEmpty) return;
                 final success = await ref
                     .read(teamListProvider.notifier)
-                    .createTeam(controller.text.trim());
-                if (success && context.mounted) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(tr('team.create_success'))),
-                  );
-                } else if (!success && context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(tr('team.create_failed'))),
-                  );
+                    .createTeam(teamName);
+                if (success) {
+                  if (dialogContext.mounted) {
+                    Navigator.of(dialogContext, rootNavigator: true).pop();
+                  }
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(tr('team.create_success'))),
+                    );
+                  }
+                } else {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(tr('team.create_failed'))),
+                    );
+                  }
                 }
               },
-              child: Text(
-                tr('common.create'),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
             ),
           ],
         );
@@ -411,64 +396,47 @@ class TeamListScreen extends ConsumerWidget {
 
     showDialog(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-          ),
-          title: Text(
-            tr('team.join_dialog_title'),
-            style: const TextStyle(fontWeight: FontWeight.w700),
-          ),
+      builder: (dialogContext) {
+        return SafePlateDialog(
+          icon: Icons.group_add_rounded,
+          accentColor: const Color(0xFF0F8E83),
+          title: tr('team.join_dialog_title'),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   controller: emailCtrl,
-                  decoration: InputDecoration(
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: safePlateDialogInputDecoration(
                     labelText: tr('team.inviter_email_label'),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 TextField(
                   controller: idCtrl,
                   keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
+                  decoration: safePlateDialogInputDecoration(
                     labelText: tr('team.inviter_member_id_label'),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 TextField(
                   controller: nameCtrl,
-                  decoration: InputDecoration(
+                  decoration: safePlateDialogInputDecoration(
                     labelText: tr('team.my_group_name_label'),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
                   ),
                 ),
               ],
             ),
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(tr('common.cancel')),
+            SafePlateDialogButton.ghost(
+              label: tr('common.cancel'),
+              onPressed: () => Navigator.pop(dialogContext),
             ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0F8E83),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
+            SafePlateDialogButton.filled(
+              label: tr('common.join'),
               onPressed: () async {
                 if (emailCtrl.text.isEmpty ||
                     idCtrl.text.isEmpty ||
@@ -482,24 +450,23 @@ class TeamListScreen extends ConsumerWidget {
                       int.tryParse(idCtrl.text.trim()) ?? 0,
                       nameCtrl.text.trim(),
                     );
-                if (success && context.mounted) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(tr('team.join_success'))),
-                  );
-                } else if (!success && context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(tr('team.join_failed'))),
-                  );
+                if (success) {
+                  if (dialogContext.mounted) {
+                    Navigator.of(dialogContext, rootNavigator: true).pop();
+                  }
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(tr('team.join_success'))),
+                    );
+                  }
+                } else {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(tr('team.join_failed'))),
+                    );
+                  }
                 }
               },
-              child: Text(
-                tr('common.join'),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
             ),
           ],
         );

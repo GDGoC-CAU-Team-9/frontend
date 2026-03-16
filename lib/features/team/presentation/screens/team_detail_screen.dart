@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../shared/widgets/safeplate_dialog.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../data/models/team_model.dart';
 import '../../data/repositories/team_repository.dart';
@@ -462,57 +463,40 @@ class TeamDetailScreen extends ConsumerWidget {
     final controller = TextEditingController(text: currentName);
     showDialog(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-          ),
-          title: Text(
-            tr('team.rename_dialog_title'),
-            style: const TextStyle(fontWeight: FontWeight.w700),
-          ),
+      builder: (dialogContext) {
+        return SafePlateDialog(
+          icon: Icons.edit_rounded,
+          accentColor: const Color(0xFF0F8E83),
+          title: tr('team.rename_dialog_title'),
           content: TextField(
             controller: controller,
-            decoration: InputDecoration(
+            autofocus: true,
+            textInputAction: TextInputAction.done,
+            decoration: safePlateDialogInputDecoration(
               labelText: tr('team.rename_label'),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(
-                  color: Color(0xFF0F8E83),
-                  width: 2,
-                ),
-              ),
             ),
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(tr('common.cancel')),
+            SafePlateDialogButton.ghost(
+              label: tr('common.cancel'),
+              onPressed: () => Navigator.pop(dialogContext),
             ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0F8E83),
-              ),
+            SafePlateDialogButton.filled(
+              label: tr('team.change_button'),
               onPressed: () async {
-                if (controller.text.trim().isEmpty ||
-                    controller.text.trim() == currentName) {
-                  return;
-                }
+                final newName = controller.text.trim();
+                if (newName.isEmpty || newName == currentName) return;
                 try {
                   await ref
                       .read(teamRepositoryProvider)
-                      .renameTeam(teamMemberId, controller.text.trim());
-                  if (context.mounted) {
-                    Navigator.pop(context);
-                    ref.invalidate(teamDetailProvider(teamMemberId));
-                    ref.read(teamListProvider.notifier).fetchInitial();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(tr('team.rename_success'))),
-                    );
-                  }
+                      .renameTeam(teamMemberId, newName);
+                  if (!context.mounted) return;
+                  Navigator.pop(dialogContext);
+                  ref.invalidate(teamDetailProvider(teamMemberId));
+                  ref.read(teamListProvider.notifier).fetchInitial();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(tr('team.rename_success'))),
+                  );
                 } catch (e) {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -521,13 +505,6 @@ class TeamDetailScreen extends ConsumerWidget {
                   }
                 }
               },
-              child: Text(
-                tr('team.change_button'),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
             ),
           ],
         );
@@ -538,39 +515,31 @@ class TeamDetailScreen extends ConsumerWidget {
   void _showExitDialog(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-          ),
-          title: Text(
-            tr('team.leave_dialog_title'),
-            style: const TextStyle(
-              fontWeight: FontWeight.w700,
-              color: Color(0xFFD94B3A),
-            ),
-          ),
-          content: Text(tr('team.leave_dialog_content')),
+      builder: (dialogContext) {
+        return SafePlateDialog(
+          icon: Icons.logout_rounded,
+          accentColor: const Color(0xFFD94B3A),
+          title: tr('team.leave_dialog_title'),
+          message: tr('team.leave_dialog_content'),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(tr('common.cancel')),
+            SafePlateDialogButton.ghost(
+              label: tr('common.cancel'),
+              onPressed: () => Navigator.pop(dialogContext),
+              accentColor: const Color(0xFF246C67),
             ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFD94B3A),
-              ),
+            SafePlateDialogButton.filled(
+              label: tr('team.leave_confirm_button'),
+              accentColor: const Color(0xFFD94B3A),
               onPressed: () async {
                 try {
                   await ref.read(teamRepositoryProvider).exitTeam(teamMemberId);
-                  if (context.mounted) {
-                    Navigator.pop(context);
-                    context.pop();
-                    ref.read(teamListProvider.notifier).fetchInitial();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(tr('team.leave_success'))),
-                    );
-                  }
+                  if (!context.mounted) return;
+                  Navigator.pop(dialogContext);
+                  context.pop();
+                  ref.read(teamListProvider.notifier).fetchInitial();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(tr('team.leave_success'))),
+                  );
                 } catch (e) {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -579,13 +548,6 @@ class TeamDetailScreen extends ConsumerWidget {
                   }
                 }
               },
-              child: Text(
-                tr('team.leave_confirm_button'),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
             ),
           ],
         );
