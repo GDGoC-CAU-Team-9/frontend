@@ -1,15 +1,16 @@
 import 'dart:developer' as developer;
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
-import '../../../../core/network/dio_client.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/network/dio_client.dart';
 
 // Model for Analysis Result
 class MenuAnalysisResult {
   final String menuName;
   final int safetyScore; // 0-100
+  final int risk; // 0-100 (higher is riskier)
+  final double confidence; // 0-1
   final String reason;
   final String safetyLevel; // 'safe', 'caution', 'danger'
   final List<String> matchedAvoid;
@@ -18,14 +19,25 @@ class MenuAnalysisResult {
   MenuAnalysisResult({
     required this.menuName,
     required this.safetyScore,
+    required this.risk,
+    required this.confidence,
     required this.reason,
     required this.safetyLevel,
     this.matchedAvoid = const [],
     this.suspectedIngredients = const [],
   });
 
+  bool get isConservativeFallback {
+    final reasonLower = reason.toLowerCase();
+    return reasonLower.contains('fallback') ||
+        reason.contains('보수적 처리') ||
+        (risk >= 100 && safetyScore == 0 && confidence == 0);
+  }
+
   factory MenuAnalysisResult.fromJson(Map<String, dynamic> json) {
-    final int risk = json['risk'] ?? 0;
+    final int risk = (json['risk'] as num?)?.toInt() ?? 0;
+    final int score = (json['score'] as num?)?.toInt() ?? 0;
+    final double confidence = (json['confidence'] as num?)?.toDouble() ?? 0;
     String safetyLevel = 'safe';
     if (risk > 70) {
       safetyLevel = 'danger';
@@ -35,7 +47,9 @@ class MenuAnalysisResult {
 
     return MenuAnalysisResult(
       menuName: (json['menu'] ?? '').toString().trim(),
-      safetyScore: json['score'] ?? 0,
+      safetyScore: score,
+      risk: risk,
+      confidence: confidence,
       reason: json['reason'] ?? json['reason_ko'] ?? '',
       safetyLevel: safetyLevel,
       matchedAvoid:

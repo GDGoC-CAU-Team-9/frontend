@@ -85,8 +85,14 @@ class HistoryDetailScreen extends StatelessWidget {
 
     final sorted = [...results]
       ..sort((a, b) {
+        final riskCompare = a.risk.compareTo(b.risk);
+        if (riskCompare != 0) return riskCompare;
+
         final scoreCompare = b.safetyScore.compareTo(a.safetyScore);
         if (scoreCompare != 0) return scoreCompare;
+
+        final confidenceCompare = b.confidence.compareTo(a.confidence);
+        if (confidenceCompare != 0) return confidenceCompare;
 
         final levelCompare = rank(a.safetyLevel).compareTo(rank(b.safetyLevel));
         if (levelCompare != 0) return levelCompare;
@@ -186,16 +192,32 @@ class HistoryDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(width: 9),
                   Expanded(
-                    child: Text(
-                      tr('history_detail.ai_best_menu'),
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: Color(0xFFF4E3C8),
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.2,
-                        fontFamily: 'Noto Serif KR',
-                        fontFamilyFallback: ['Nanum Myeongjo', 'serif'],
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          tr('history_detail.ai_best_menu'),
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Color(0xFFF4E3C8),
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.2,
+                            fontFamily: 'Noto Serif KR',
+                            fontFamilyFallback: ['Nanum Myeongjo', 'serif'],
+                          ),
+                        ),
+                        const SizedBox(height: 1),
+                        Text(
+                          tr('history_detail.low_risk_priority'),
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Color(0xFFE7D2B4),
+                            fontWeight: FontWeight.w600,
+                            fontFamily: 'Noto Serif KR',
+                            fontFamilyFallback: ['Nanum Myeongjo', 'serif'],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   Container(
@@ -279,13 +301,135 @@ class HistoryDetailScreen extends StatelessWidget {
     );
   }
 
+  String _joinValues(List<String> values, {String fallback = '-'}) {
+    if (values.isEmpty) return fallback;
+    return values.where((e) => e.trim().isNotEmpty).join(', ');
+  }
+
+  String _localizedReason(String rawReason) {
+    final normalized = rawReason.trim();
+    if (normalized.isEmpty) return '-';
+
+    if (normalized.contains('기피 재료 근거 부족')) {
+      return tr('history_detail.reason_insufficient_evidence');
+    }
+    if (normalized.contains('위험도 판단 실패')) {
+      return tr('history_detail.reason_fallback');
+    }
+
+    final lower = normalized.toLowerCase();
+    if (lower.contains('insufficient avoid-ingredient evidence')) {
+      return tr('history_detail.reason_insufficient_evidence');
+    }
+    if (lower.contains('risk assessment failed')) {
+      return tr('history_detail.reason_fallback');
+    }
+
+    final cautionMatch = RegExp(
+      r'^Caution:\s*(.+?)\s*\((common recipe|direct evidence)\)(\s*\(low confidence\))?$',
+      caseSensitive: false,
+    ).firstMatch(normalized);
+
+    if (cautionMatch != null) {
+      final ingredient = cautionMatch.group(1)?.trim() ?? '';
+      final source = cautionMatch.group(2)?.toLowerCase() ?? '';
+      final sourceLabel = source == 'direct evidence'
+          ? tr('history_detail.reason_source_direct')
+          : tr('history_detail.reason_source_common');
+      final suffix = cautionMatch.group(3) != null
+          ? tr('history_detail.reason_low_confidence_suffix')
+          : '';
+
+      return tr(
+        'history_detail.reason_caution',
+        namedArgs: {
+          'ingredient': ingredient,
+          'source': sourceLabel,
+          'suffix': suffix,
+        },
+      );
+    }
+
+    return normalized;
+  }
+
+  Widget _buildFallbackSummaryCard(int fallbackCount) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF4E8),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFF5C58F)),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.warning_amber_rounded,
+            color: Color(0xFFBF6B1C),
+            size: 18,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              tr(
+                'history_detail.fallback_summary',
+                namedArgs: {'count': '$fallbackCount'},
+              ),
+              style: const TextStyle(
+                color: Color(0xFF7A4A1E),
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+                height: 1.25,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetaPill({
+    required IconData icon,
+    required String label,
+    required Color textColor,
+    required Color bgColor,
+    Color? borderColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(999),
+        border: borderColor == null ? null : Border.all(color: borderColor),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: textColor),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: textColor,
+              fontWeight: FontWeight.w700,
+              fontSize: 11,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildItemCard(MenuAnalysisResult item) {
     final levelColor = _getLevelColor(item.safetyLevel);
     final levelLabel = _getSafetyLabel(item.safetyLevel);
+    final confidencePercent = (item.confidence * 100).round().clamp(0, 100);
+    final matchedAvoidText = _joinValues(item.matchedAvoid);
+    final suspectedText = _joinValues(item.suspectedIngredients);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.68),
         borderRadius: BorderRadius.circular(16),
@@ -353,50 +497,81 @@ class HistoryDetailScreen extends StatelessWidget {
               ),
             ],
           ),
-          if (item.reason.isNotEmpty) ...[
-            const SizedBox(height: 6),
-            Text(
-              item.reason,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: Color(0xFF556765),
-                height: 1.25,
-                fontSize: 14,
+          const SizedBox(height: 7),
+          Text(
+            _localizedReason(item.reason),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Color(0xFF556765),
+              height: 1.25,
+              fontSize: 13,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              _buildMetaPill(
+                icon: Icons.speed_rounded,
+                label: tr(
+                  'history_detail.meta_risk',
+                  namedArgs: {'value': '${item.risk}'},
+                ),
+                textColor: const Color(0xFF8C5E2E),
+                bgColor: const Color(0xFFFFF3E6),
+                borderColor: const Color(0xFFF4CC9D),
               ),
+              _buildMetaPill(
+                icon: Icons.analytics_rounded,
+                label: tr(
+                  'history_detail.meta_confidence',
+                  namedArgs: {'value': '$confidencePercent'},
+                ),
+                textColor: const Color(0xFF275E8F),
+                bgColor: const Color(0xFFEAF3FC),
+                borderColor: const Color(0xFFC4DAF0),
+              ),
+              if (item.isConservativeFallback)
+                _buildMetaPill(
+                  icon: Icons.warning_amber_rounded,
+                  label: tr('history_detail.meta_conservative'),
+                  textColor: const Color(0xFF8E4C1C),
+                  bgColor: const Color(0xFFFFF2E4),
+                  borderColor: const Color(0xFFF2C48E),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            tr(
+              'history_detail.matched_avoid',
+              namedArgs: {'value': matchedAvoidText},
             ),
-          ],
-          if (item.matchedAvoid.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 6,
-              runSpacing: 4,
-              children: item.matchedAvoid
-                  .map<Widget>(
-                    (avoid) => Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE25545).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: const Color(0xFFE25545).withOpacity(0.3),
-                        ),
-                      ),
-                      child: Text(
-                        avoid,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFFD84939),
-                        ),
-                      ),
-                    ),
-                  )
-                  .toList(),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Color(0xFF49615E),
+              height: 1.2,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
             ),
-          ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            tr(
+              'history_detail.suspected_ingredients',
+              namedArgs: {'value': suspectedText},
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Color(0xFF5A6D6A),
+              height: 1.2,
+              fontSize: 12,
+            ),
+          ),
         ],
       ),
     );
@@ -405,6 +580,9 @@ class HistoryDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final recommended = _pickTopRecommendations(historyItem.items, limit: 5);
+    final fallbackCount = historyItem.items
+        .where((item) => item.isConservativeFallback)
+        .length;
     final dateStr =
         '${historyItem.createdAt.year}.${historyItem.createdAt.month.toString().padLeft(2, '0')}.${historyItem.createdAt.day.toString().padLeft(2, '0')} ${historyItem.createdAt.hour.toString().padLeft(2, '0')}:${historyItem.createdAt.minute.toString().padLeft(2, '0')}';
 
@@ -515,7 +693,14 @@ class HistoryDetailScreen extends StatelessWidget {
                         fontSize: 13,
                       ),
                     ),
-                    const Spacer(),
+                    const Text(
+                      ' / ',
+                      style: TextStyle(
+                        color: Color(0xFF617D7A),
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                      ),
+                    ),
                     Text(
                       tr(
                         'history_detail.items_analyzed',
@@ -531,6 +716,13 @@ class HistoryDetailScreen extends StatelessWidget {
                 ),
               ),
             ),
+            if (fallbackCount > 0)
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
+                sliver: SliverToBoxAdapter(
+                  child: _buildFallbackSummaryCard(fallbackCount),
+                ),
+              ),
             if (recommended.isNotEmpty)
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
@@ -538,6 +730,19 @@ class HistoryDetailScreen extends StatelessWidget {
                   child: _buildRecommendationCard(recommended),
                 ),
               ),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
+              sliver: SliverToBoxAdapter(
+                child: Text(
+                  tr('history_detail.safety_hint'),
+                  style: const TextStyle(
+                    color: Color(0xFF6A8380),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ),
             if (historyItem.items.isEmpty)
               SliverFillRemaining(
                 child: Center(child: Text(tr('history_detail.no_items'))),

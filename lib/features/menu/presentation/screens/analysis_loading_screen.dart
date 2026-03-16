@@ -76,14 +76,16 @@ class _AnalysisLoadingScreenState extends ConsumerState<AnalysisLoadingScreen>
     // Listen for completion
     ref.listen(menuAnalysisProvider, (previous, next) {
       next.whenData((results) {
+        final router = GoRouter.of(context);
         // Add a small delay to let the last animation finish visually
         Future.delayed(const Duration(milliseconds: 500), () {
           if (mounted) {
-            context.pushReplacement(
+            router.pushReplacement(
               '/analysis-result',
-              extra: widget
-                  .imageFile
-                  .path, // We can pass path here for display, AnalysisResult can handle dynamic or just String
+              extra: {
+                'imagePath': widget.imageFile.path,
+                'teamMemberId': widget.teamMemberId,
+              },
             );
           }
         });
@@ -246,7 +248,11 @@ class _AnalysisLoadingScreenState extends ConsumerState<AnalysisLoadingScreen>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline, color: Colors.redAccent, size: 42),
+              const Icon(
+                Icons.error_outline,
+                color: Colors.redAccent,
+                size: 42,
+              ),
               const SizedBox(height: 12),
               Text(
                 tr('analysis_loading.failed_title'),

@@ -704,7 +704,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildHistoryCard(HistoryItem item) {
-    final dateStr = _formatDate(item.createdAt);
+    final dateStr = DateFormat('yyMMdd HH:mm').format(item.createdAt);
     final menuCount = item.items.length;
 
     return GestureDetector(
@@ -812,6 +812,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             const SizedBox(width: 4),
                             Text(
                               dateStr,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: Color(0xFF4A6360),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const Text(
+                              ' / ',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Color(0xFF4A6360),
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            Text(
+                              tr(
+                                'home.chip_menu_count_compact',
+                                namedArgs: {'count': '$menuCount'},
+                              ),
                               style: const TextStyle(
                                 fontSize: 11,
                                 color: Color(0xFF4A6360),
@@ -1030,27 +1049,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         onTap: onTap,
       ),
     );
-  }
-
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final diff = now.difference(date);
-
-    if (diff.inMinutes < 1) return tr('home.time_just_now');
-    if (diff.inMinutes < 60) {
-      return tr(
-        'home.time_minutes_ago',
-        namedArgs: {'value': '${diff.inMinutes}'},
-      );
-    }
-    if (diff.inHours < 24) {
-      return tr('home.time_hours_ago', namedArgs: {'value': '${diff.inHours}'});
-    }
-    if (diff.inDays < 7) {
-      return tr('home.time_days_ago', namedArgs: {'value': '${diff.inDays}'});
-    }
-
-    return '${date.year}.${date.month.toString().padLeft(2, '0')}.${date.day.toString().padLeft(2, '0')}';
   }
 
   String _menuNameOrUnknown(String menuName) {
