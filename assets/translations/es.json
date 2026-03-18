@@ -87,7 +87,7 @@
     "go_to_team_management": "Ir a gestión de equipos",
     "language_change_failed": "No se pudo cambiar el idioma. Inténtalo de nuevo.",
     "history_load_failed": "Error al cargar el historial.",
-    "empty_title": "Toma una foto del menú\ny encuentra comida segura",
+    "empty_title": "¡Encuentra comida segura!",
     "empty_desc": "La IA analizará ingredientes a evitar por ti.",
     "empty_hint": "Toca el botón + en la esquina inferior derecha para empezar",
     "chip_best": "Recomendado: {name}",

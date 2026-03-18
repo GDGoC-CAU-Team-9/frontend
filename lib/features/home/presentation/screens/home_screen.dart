@@ -623,13 +623,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             Container(
               padding: const EdgeInsets.all(30),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.5),
+                color: const Color(0xFF7AA39D).withValues(alpha: 0.035),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.restaurant_menu,
                 size: 80,
-                color: Colors.teal.shade300,
+                color: const Color(0xFF678A85).withValues(alpha: 0.14),
               ),
             ),
             const SizedBox(height: 32),
@@ -646,11 +646,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             Text(
               tr('home.empty_desc'),
               style: const TextStyle(fontSize: 16, color: Colors.grey),
-            ),
-            const SizedBox(height: 32),
-            Text(
-              tr('home.empty_hint'),
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
             ),
           ],
         ),

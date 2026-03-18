@@ -20,9 +20,9 @@ class ProfileScreen extends StatelessWidget {
         title: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.45),
+            color: Colors.white.withValues(alpha: 0.45),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.white.withOpacity(0.8)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.8)),
           ),
           child: Text(
             tr('profile.title'),
@@ -40,12 +40,12 @@ class ProfileScreen extends StatelessWidget {
           padding: const EdgeInsets.all(8.0),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.65),
+              color: Colors.white.withValues(alpha: 0.65),
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white.withOpacity(0.9)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.9)),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF7FA7A0).withOpacity(0.18),
+                  color: const Color(0xFF7FA7A0).withValues(alpha: 0.18),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -59,32 +59,37 @@ class ProfileScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: Container(
-        decoration: const BoxDecoration(gradient: _backgroundGradient),
-        child: SafeArea(
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
-            children: [
-              _buildMenuCard(
-                context,
-                title: tr('profile.input_title'),
-                description: tr('profile.input_desc'),
-                icon: Icons.edit_note_rounded,
-                onTap: () => context.push('/profile/avoid-input'),
-                accentColor: const Color(0xFF128B80),
-              ),
-              const SizedBox(height: 12),
-              _buildMenuCard(
-                context,
-                title: tr('profile.selected_title'),
-                description: tr('profile.selected_desc'),
-                icon: Icons.checklist_rounded,
-                onTap: () => context.push('/profile/avoid-list'),
-                accentColor: const Color(0xFF2C74D8),
-              ),
-            ],
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(gradient: _backgroundGradient),
           ),
-        ),
+          SafeArea(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+              children: [
+                _buildMenuCard(
+                  context,
+                  title: tr('profile.input_title'),
+                  description: tr('profile.input_desc'),
+                  icon: Icons.edit_note_rounded,
+                  onTap: () => context.push('/profile/avoid-input'),
+                  accentColor: const Color(0xFF128B80),
+                ),
+                const SizedBox(height: 12),
+                _buildMenuCard(
+                  context,
+                  title: tr('profile.selected_title'),
+                  description: tr('profile.selected_desc'),
+                  icon: Icons.checklist_rounded,
+                  onTap: () => context.push('/profile/avoid-list'),
+                  accentColor: const Color(0xFF2C74D8),
+                ),
+              ],
+            ),
+          ),
+          const IgnorePointer(child: _ProfileBackgroundGear()),
+        ],
       ),
     );
   }
@@ -99,12 +104,12 @@ class ProfileScreen extends StatelessWidget {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.62),
+        color: Colors.white.withValues(alpha: 0.62),
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: Colors.white.withOpacity(0.9)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.9)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF8DAEA8).withOpacity(0.2),
+            color: const Color(0xFF8DAEA8).withValues(alpha: 0.2),
             blurRadius: 14,
             offset: const Offset(0, 8),
           ),
@@ -124,8 +129,10 @@ class ProfileScreen extends StatelessWidget {
                   height: 62,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: accentColor.withOpacity(0.12),
-                    border: Border.all(color: accentColor.withOpacity(0.18)),
+                    color: accentColor.withValues(alpha: 0.12),
+                    border: Border.all(
+                      color: accentColor.withValues(alpha: 0.18),
+                    ),
                   ),
                   child: Icon(icon, size: 30, color: accentColor),
                 ),
@@ -157,10 +164,35 @@ class ProfileScreen extends StatelessWidget {
                 Icon(
                   Icons.arrow_forward_ios_rounded,
                   size: 18,
-                  color: accentColor.withOpacity(0.85),
+                  color: accentColor.withValues(alpha: 0.85),
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ProfileBackgroundGear extends StatelessWidget {
+  const _ProfileBackgroundGear();
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.center,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: const Color(0xFF7AA39D).withValues(alpha: 0.035),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Icon(
+            Icons.settings_rounded,
+            size: 126,
+            color: const Color(0xFF678A85).withValues(alpha: 0.14),
           ),
         ),
       ),

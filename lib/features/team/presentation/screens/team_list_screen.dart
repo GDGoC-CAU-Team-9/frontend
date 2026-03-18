@@ -60,104 +60,112 @@ class TeamListScreen extends ConsumerWidget {
           ),
         ),
       ),
-      body: Container(
-        decoration: const BoxDecoration(gradient: _backgroundGradient),
-        child: SafeArea(
-          child: teamState.when(
-            loading: () => const Center(
-              child: CircularProgressIndicator(color: Color(0xFF0F8E83)),
-            ),
-            error: (err, stack) => Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Text(
-                  tr('team.error_with_message', namedArgs: {'message': '$err'}),
-                  textAlign: TextAlign.center,
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(gradient: _backgroundGradient),
+          ),
+          IgnorePointer(child: _buildBackgroundTeamIcon()),
+          SafeArea(
+            child: teamState.when(
+              loading: () => const Center(
+                child: CircularProgressIndicator(color: Color(0xFF0F8E83)),
+              ),
+              error: (err, stack) => Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Text(
+                    tr(
+                      'team.error_with_message',
+                      namedArgs: {'message': '$err'},
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               ),
-            ),
-            data: (teams) {
-              if (teams.isEmpty) return _buildEmptyState();
+              data: (teams) {
+                if (teams.isEmpty) return _buildEmptyState();
 
-              return RefreshIndicator(
-                color: const Color(0xFF0F8E83),
-                onRefresh: () =>
-                    ref.read(teamListProvider.notifier).fetchInitial(),
-                child: ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 92),
-                  itemCount: teams.length,
-                  itemBuilder: (context, index) {
-                    final team = teams[index];
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.62),
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.9),
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF8DAEA8).withOpacity(0.2),
-                            blurRadius: 12,
-                            offset: const Offset(0, 6),
+                return RefreshIndicator(
+                  color: const Color(0xFF0F8E83),
+                  onRefresh: () =>
+                      ref.read(teamListProvider.notifier).fetchInitial(),
+                  child: ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 92),
+                    itemCount: teams.length,
+                    itemBuilder: (context, index) {
+                      final team = teams[index];
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.62),
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.9),
                           ),
-                        ],
-                      ),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 10,
-                        ),
-                        leading: Container(
-                          width: 54,
-                          height: 54,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: const Color(0xFF0F8E83).withOpacity(0.12),
-                          ),
-                          child: const Icon(
-                            Icons.groups_2_rounded,
-                            color: Color(0xFF0F8E83),
-                            size: 28,
-                          ),
-                        ),
-                        title: Text(
-                          team.teamName,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 17,
-                            color: Color(0xFF213434),
-                          ),
-                        ),
-                        subtitle: Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: Text(
-                            tr(
-                              'team.my_member_id',
-                              namedArgs: {'id': '${team.teamMemberId}'},
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF8DAEA8).withOpacity(0.2),
+                              blurRadius: 12,
+                              offset: const Offset(0, 6),
                             ),
+                          ],
+                        ),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
+                          leading: Container(
+                            width: 54,
+                            height: 54,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: const Color(0xFF0F8E83).withOpacity(0.12),
+                            ),
+                            child: const Icon(
+                              Icons.groups_2_rounded,
+                              color: Color(0xFF0F8E83),
+                              size: 28,
+                            ),
+                          ),
+                          title: Text(
+                            team.teamName,
                             style: const TextStyle(
-                              color: Color(0xFF4E6462),
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 17,
+                              color: Color(0xFF213434),
                             ),
                           ),
+                          subtitle: Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Text(
+                              tr(
+                                'team.my_member_id',
+                                namedArgs: {'id': '${team.teamMemberId}'},
+                              ),
+                              style: const TextStyle(
+                                color: Color(0xFF4E6462),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          trailing: const Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            size: 16,
+                            color: Color(0xFF708483),
+                          ),
+                          onTap: () =>
+                              context.push('/teams/${team.teamMemberId}'),
                         ),
-                        trailing: const Icon(
-                          Icons.arrow_forward_ios_rounded,
-                          size: 16,
-                          color: Color(0xFF708483),
-                        ),
-                        onTap: () =>
-                            context.push('/teams/${team.teamMemberId}'),
-                      ),
-                    );
-                  },
-                ),
-              );
-            },
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
           ),
-        ),
+        ],
       ),
       floatingActionButton: DecoratedBox(
         decoration: BoxDecoration(
@@ -229,6 +237,26 @@ class TeamListScreen extends ConsumerWidget {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBackgroundTeamIcon() {
+    return Align(
+      alignment: Alignment.center,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: const Color(0xFF7AA39D).withValues(alpha: 0.035),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(26),
+          child: Icon(
+            Icons.groups_2_rounded,
+            size: 126,
+            color: const Color(0xFF678A85).withValues(alpha: 0.14),
           ),
         ),
       ),

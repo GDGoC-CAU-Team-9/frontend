@@ -87,7 +87,7 @@
     "go_to_team_management": "チーム管理へ移動",
     "language_change_failed": "言語の変更に失敗しました。もう一度お試しください。",
     "history_load_failed": "履歴の読み込みに失敗しました。",
-    "empty_title": "メニュー写真を撮って\n安全な料理を見つけましょう！",
+    "empty_title": "安全な料理を見つけましょう！",
     "empty_desc": "AI が忌避食材を分析します。",
     "empty_hint": "右下の + ボタンをタップして開始",
     "chip_best": "おすすめ: {name}",

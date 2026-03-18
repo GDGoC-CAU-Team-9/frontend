@@ -87,7 +87,7 @@
     "go_to_team_management": "Aller à la gestion d'équipe",
     "language_change_failed": "Échec du changement de langue. Veuillez réessayer.",
     "history_load_failed": "Échec du chargement de l'historique.",
-    "empty_title": "Prenez une photo du menu\net trouvez des plats sûrs !",
+    "empty_title": "Trouvez des plats sûrs !",
     "empty_desc": "L'IA analysera les ingrédients à éviter pour vous.",
     "empty_hint": "Touchez le bouton + en bas à droite pour commencer",
     "chip_best": "Recommandé : {name}",

@@ -87,7 +87,7 @@
     "go_to_team_management": "前往团队管理",
     "language_change_failed": "语言切换失败，请重试。",
     "history_load_failed": "加载历史记录失败。",
-    "empty_title": "拍一张菜单照片\n找到安全可吃的食物！",
+    "empty_title": "找到安全可吃的食物！",
     "empty_desc": "AI 会为你分析需要避免的食材。",
     "empty_hint": "点击右下角 + 按钮开始",
     "chip_best": "推荐：{name}",

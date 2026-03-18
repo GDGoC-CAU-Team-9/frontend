@@ -87,7 +87,7 @@
     "go_to_team_management": "Go to Team Management",
     "language_change_failed": "Failed to change language. Please try again.",
     "history_load_failed": "Failed to load history.",
-    "empty_title": "Take a menu photo\nand find safe food!",
+    "empty_title": "Find safe food!",
     "empty_desc": "AI will analyze avoid ingredients for you.",
     "empty_hint": "Tap the + button at the bottom right to start",
     "chip_best": "Best: {name}",

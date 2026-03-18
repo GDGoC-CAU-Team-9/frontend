@@ -57,92 +57,116 @@ class AvoidListScreen extends ConsumerWidget {
           ),
         ),
       ),
-      body: Container(
-        decoration: const BoxDecoration(gradient: _backgroundGradient),
-        child: SafeArea(
-          child: avoidItemsAsync.when(
-            loading: () => const Center(
-              child: CircularProgressIndicator(color: Color(0xFF0F8E83)),
-            ),
-            error: (err, stack) => Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.error_outline_rounded,
-                    size: 48,
-                    color: Color(0xFFD94B3A),
-                  ),
-                  const SizedBox(height: 12),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Text(
-                      tr(
-                        'avoid.load_failed_with_message',
-                        namedArgs: {'message': err.toString()},
-                      ),
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: Color(0xFF5F7070)),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => ref.invalidate(myAvoidItemsProvider),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0F8E83),
-                      foregroundColor: Colors.white,
-                    ),
-                    child: Text(tr('common.retry')),
-                  ),
-                ],
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(gradient: _backgroundGradient),
+          ),
+          IgnorePointer(child: _buildBackgroundVegetableIcon()),
+          SafeArea(
+            child: avoidItemsAsync.when(
+              loading: () => const Center(
+                child: CircularProgressIndicator(color: Color(0xFF0F8E83)),
               ),
-            ),
-            data: (items) {
-              if (items.isEmpty) {
-                return _buildEmptyState(context);
-              }
-
-              return Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                    child: _buildSummaryCard(items.length),
-                  ),
-                  const SizedBox(height: 10),
-                  Expanded(
-                    child: ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: items.length,
-                      itemBuilder: (context, index) {
-                        final item = items[index];
-                        return Dismissible(
-                          key: Key(item),
-                          direction: DismissDirection.endToStart,
-                          background: Container(
-                            margin: const EdgeInsets.only(bottom: 10),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFE25545),
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            alignment: Alignment.centerRight,
-                            padding: const EdgeInsets.only(right: 20),
-                            child: const Icon(
-                              Icons.delete_outline_rounded,
-                              color: Colors.white,
-                            ),
-                          ),
-                          onDismissed: (_) => _handleRemove(context, ref, item),
-                          child: _buildAvoidItemTile(
-                            item: item,
-                            onRemove: () => _handleRemove(context, ref, item),
-                          ),
-                        );
-                      },
+              error: (err, stack) => Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.error_outline_rounded,
+                      size: 48,
+                      color: Color(0xFFD94B3A),
                     ),
-                  ),
-                ],
-              );
-            },
+                    const SizedBox(height: 12),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Text(
+                        tr(
+                          'avoid.load_failed_with_message',
+                          namedArgs: {'message': err.toString()},
+                        ),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Color(0xFF5F7070)),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () => ref.invalidate(myAvoidItemsProvider),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0F8E83),
+                        foregroundColor: Colors.white,
+                      ),
+                      child: Text(tr('common.retry')),
+                    ),
+                  ],
+                ),
+              ),
+              data: (items) {
+                if (items.isEmpty) return _buildEmptyState();
+
+                return Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                      child: _buildSummaryCard(items.length),
+                    ),
+                    const SizedBox(height: 10),
+                    Expanded(
+                      child: ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: items.length,
+                        itemBuilder: (context, index) {
+                          final item = items[index];
+                          return Dismissible(
+                            key: Key(item),
+                            direction: DismissDirection.endToStart,
+                            background: Container(
+                              margin: const EdgeInsets.only(bottom: 10),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE25545),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              alignment: Alignment.centerRight,
+                              padding: const EdgeInsets.only(right: 20),
+                              child: const Icon(
+                                Icons.delete_outline_rounded,
+                                color: Colors.white,
+                              ),
+                            ),
+                            onDismissed: (_) =>
+                                _handleRemove(context, ref, item),
+                            child: _buildAvoidItemTile(
+                              item: item,
+                              onRemove: () => _handleRemove(context, ref, item),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBackgroundVegetableIcon() {
+    return Align(
+      alignment: Alignment.center,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: const Color(0xFF7AA39D).withValues(alpha: 0.035),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(26),
+          child: Icon(
+            Icons.apple_rounded,
+            size: 126,
+            color: const Color(0xFF678A85).withValues(alpha: 0.14),
           ),
         ),
       ),
@@ -243,26 +267,13 @@ class AvoidListScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
+  Widget _buildEmptyState() {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              padding: const EdgeInsets.all(22),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.6),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.no_food_outlined,
-                size: 48,
-                color: Color(0xFF7A8F8D),
-              ),
-            ),
-            const SizedBox(height: 18),
             Text(
               tr('avoid.empty_title'),
               textAlign: TextAlign.center,
@@ -277,31 +288,6 @@ class AvoidListScreen extends ConsumerWidget {
               tr('avoid.empty_desc'),
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 14, color: Color(0xFF6B7C7B)),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: () {
-                context.pop();
-                context.push('/profile/avoid-input');
-              },
-              icon: const Icon(Icons.add_rounded, color: Colors.white),
-              label: Text(
-                tr('avoid.go_input'),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0F8E83),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
-                ),
-              ),
             ),
           ],
         ),
