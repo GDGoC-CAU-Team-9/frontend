@@ -1,4 +1,5 @@
 import 'package:camera/camera.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -41,10 +42,12 @@ class _CameraScreenState extends State<CameraScreen> {
           });
         }
       } else {
-        _showError('No cameras found.');
+        _showError(tr('camera.no_cameras_found'));
       }
     } catch (e) {
-      _showError('Camera error: $e. Make sure no other app is using it.');
+      _showError(
+        tr('camera.camera_error_with_message', namedArgs: {'message': '$e'}),
+      );
     }
   }
 
@@ -55,7 +58,7 @@ class _CameraScreenState extends State<CameraScreen> {
           content: Text(message),
           duration: const Duration(seconds: 4),
           action: SnackBarAction(
-            label: 'Use Gallery',
+            label: tr('camera.use_gallery'),
             onPressed: () {
               ScaffoldMessenger.of(
                 context,
@@ -88,7 +91,12 @@ class _CameraScreenState extends State<CameraScreen> {
         );
       }
     } catch (e) {
-      _showError('Failed to capture image: $e');
+      _showError(
+        tr(
+          'camera.capture_failed_with_message',
+          namedArgs: {'message': '$e'},
+        ),
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -123,9 +131,9 @@ class _CameraScreenState extends State<CameraScreen> {
             children: [
               const CircularProgressIndicator(),
               const SizedBox(height: 20),
-              const Text(
-                'Initializing Camera...',
-                style: TextStyle(color: Colors.white),
+              Text(
+                tr('camera.initializing'),
+                style: const TextStyle(color: Colors.white),
               ),
               const SizedBox(height: 20),
               TextButton.icon(
@@ -134,9 +142,9 @@ class _CameraScreenState extends State<CameraScreen> {
                   context.pop();
                 }, // Go back so they can use Gallery
                 icon: const Icon(Icons.image, color: Colors.white),
-                label: const Text(
-                  'Use Gallery instead',
-                  style: TextStyle(color: Colors.white),
+                label: Text(
+                  tr('camera.use_gallery_instead'),
+                  style: const TextStyle(color: Colors.white),
                 ),
               ),
             ],

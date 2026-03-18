@@ -51,7 +51,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
-      GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
+      GoRoute(
+        path: '/splash',
+        builder: (context, state) => const SplashScreen(),
+      ),
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(
         path: '/signup',
@@ -82,7 +85,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           int? teamMemberId;
 
           if (extra is Map) {
-            imageFile = extra['imageFile'] as XFile? ?? extra['image'] as XFile?;
+            imageFile =
+                extra['imageFile'] as XFile? ?? extra['image'] as XFile?;
             teamMemberId = extra['teamMemberId'] as int?;
           } else if (extra is XFile) {
             // Backward compatibility: previous flow passed XFile directly
@@ -90,8 +94,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           }
 
           if (imageFile == null) {
-            Future.microtask(() => GoRouter.of(context).go('/home'));
-            return const SizedBox.shrink();
+            return const HomeScreen();
           }
 
           return AnalysisLoadingScreen(
@@ -104,8 +107,27 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/analysis-result',
         builder: (context, state) {
-          final imagePath = state.extra as String;
-          return AnalysisResultScreen(imagePath: imagePath);
+          final extra = state.extra;
+          String? imagePath;
+          int? teamMemberId;
+
+          if (extra is Map) {
+            imagePath =
+                extra['imagePath'] as String? ?? extra['image'] as String?;
+            teamMemberId = extra['teamMemberId'] as int?;
+          } else if (extra is String) {
+            // Backward compatibility: previous flow passed imagePath directly
+            imagePath = extra;
+          }
+
+          if (imagePath == null || imagePath.trim().isEmpty) {
+            return const HomeScreen();
+          }
+
+          return AnalysisResultScreen(
+            imagePath: imagePath,
+            teamMemberId: teamMemberId,
+          );
         },
       ),
       GoRoute(

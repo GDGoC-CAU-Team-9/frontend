@@ -13,6 +13,7 @@ import '../../../team/presentation/providers/team_provider.dart';
 import '../../../../core/theme/app_design.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/utils/error_utils.dart';
+import '../../../../shared/widgets/safeplate_dialog.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -23,6 +24,12 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   final ImagePicker _picker = ImagePicker();
+  static const LinearGradient _homeBackgroundGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [Color(0xFFE8F2F1), Color(0xFFF2F7F6), Color(0xFFFCFEFD)],
+    stops: [0, 0.5, 1],
+  );
 
   @override
   void initState() {
@@ -33,16 +40,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     });
   }
 
-  Future<void> _pickImage(
-    ImageSource source, {
-    int? teamMemberId,
-  }) async {
+  Future<void> _pickImage(ImageSource source, {int? teamMemberId}) async {
     if (kIsWeb && source == ImageSource.camera) {
       if (mounted) {
-        await context.push(
-          '/camera',
-          extra: {'teamMemberId': teamMemberId},
-        );
+        await context.push('/camera', extra: {'teamMemberId': teamMemberId});
         // Refresh history when returning from camera flow
         if (mounted) {
           ref.read(historyListProvider.notifier).refresh();
@@ -67,9 +68,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
               tr(
@@ -83,10 +82,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
-  void _showImageSourceActionSheet(
-    BuildContext context, {
-    int? teamMemberId,
-  }) {
+  void _showImageSourceActionSheet(BuildContext context, {int? teamMemberId}) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -178,8 +174,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 },
                 child: Container(
                   width: double.infinity,
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 18,
+                    horizontal: 20,
+                  ),
                   decoration: AppDesign.glassDecoration.copyWith(
                     color: Colors.white.withOpacity(0.85),
                     borderRadius: BorderRadius.circular(20),
@@ -329,15 +327,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           child: ListView.separated(
                             padding: const EdgeInsets.symmetric(vertical: 6),
                             itemCount: teams.length,
-                            separatorBuilder: (_, __) => Divider(
-                              height: 1,
-                              color: Colors.grey.shade300,
-                            ),
+                            separatorBuilder: (_, __) =>
+                                Divider(height: 1, color: Colors.grey.shade300),
                             itemBuilder: (context, index) {
                               final team = teams[index];
                               return ListTile(
                                 leading: CircleAvatar(
-                                  backgroundColor: Colors.teal.withOpacity(0.15),
+                                  backgroundColor: Colors.teal.withOpacity(
+                                    0.15,
+                                  ),
                                   child: const Icon(
                                     Icons.group,
                                     color: Colors.teal,
@@ -625,13 +623,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             Container(
               padding: const EdgeInsets.all(30),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.5),
+                color: const Color(0xFF7AA39D).withValues(alpha: 0.035),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.restaurant_menu,
                 size: 80,
-                color: Colors.teal.shade300,
+                color: const Color(0xFF678A85).withValues(alpha: 0.14),
               ),
             ),
             const SizedBox(height: 32),
@@ -649,11 +647,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               tr('home.empty_desc'),
               style: const TextStyle(fontSize: 16, color: Colors.grey),
             ),
-            const SizedBox(height: 32),
-            Text(
-              tr('home.empty_hint'),
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
-            ),
           ],
         ),
       );
@@ -662,18 +655,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     // History list
     return RefreshIndicator(
       onRefresh: () => ref.read(historyListProvider.notifier).refresh(),
-      color: Colors.teal,
+      color: const Color(0xFF128B7E),
       child: CustomScrollView(
         slivers: [
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 92),
             sliver: SliverGrid(
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
-                mainAxisExtent:
-                    240, // Reduced overall height to make white area smaller
+                mainAxisSpacing: 16,
+                crossAxisSpacing: 16,
+                mainAxisExtent: 252,
               ),
               delegate: SliverChildBuilderDelegate((context, index) {
                 final item = historyState.items[index];
@@ -705,12 +697,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildHistoryCard(HistoryItem item) {
-    final dateStr = _formatDate(item.createdAt);
-    final menuCount = item.items.length;
-    final safeCount = item.items.where((m) => m.safetyLevel == 'safe').length;
-    final dangerCount = item.items
-        .where((m) => m.safetyLevel == 'danger')
-        .length;
+    final dateStr = DateFormat('yyMMdd HH:mm').format(item.createdAt);
 
     return GestureDetector(
       onTap: () {
@@ -719,70 +706,87 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       child: Container(
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withOpacity(0.4)),
+          borderRadius: BorderRadius.circular(26),
+          border: Border.all(color: Colors.white.withOpacity(0.9), width: 1.3),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 15,
-              spreadRadius: 2,
-              offset: const Offset(0, 4),
+              color: const Color(0xFF7FA7A0).withOpacity(0.16),
+              blurRadius: 20,
+              spreadRadius: 1,
+              offset: const Offset(0, 10),
+            ),
+            const BoxShadow(
+              color: Color(0xFFFDFEFE),
+              blurRadius: 10,
+              offset: Offset(-3, -3),
             ),
           ],
         ),
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Full background image
+            // Main image
             if (item.imageUrls.isNotEmpty)
               Image.network(
                 item.imageUrls.first,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) => Container(
-                  color: Colors.grey.shade200,
+                  color: const Color(0xFFD9E8E5),
                   child: const Center(
                     child: Icon(
                       Icons.image_not_supported,
                       size: 40,
-                      color: Colors.grey,
+                      color: Color(0xFF759E97),
                     ),
                   ),
                 ),
               )
             else
               Container(
-                color: Colors.teal.shade50,
+                color: const Color(0xFFDFF0EC),
                 child: Center(
                   child: Icon(
                     Icons.restaurant_menu,
                     size: 40,
-                    color: Colors.teal.shade200,
+                    color: const Color(0xFF71A69E),
                   ),
                 ),
               ),
-
-            // Information overlay with Glassmorphism
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withOpacity(0.08),
+                      Colors.black.withOpacity(0.22),
+                    ],
+                    stops: const [0.42, 0.72, 1],
+                  ),
+                ),
+              ),
+            ),
             Positioned(
               left: 0,
               right: 0,
               bottom: 0,
               child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(18),
+                ),
                 child: BackdropFilter(
-                  filter: ImageFilter.blur(
-                    sigmaX: 6,
-                    sigmaY: 6,
-                  ), // Balanced blur
+                  filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
+                      horizontal: 12.5,
+                      vertical: 11.5,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(
-                        0.6,
-                      ), // Balanced transparency
+                      color: Colors.white.withOpacity(0.72),
                       border: Border(
-                        top: BorderSide(color: Colors.white.withOpacity(0.4)),
+                        top: BorderSide(color: Colors.white.withOpacity(0.78)),
                       ),
                     ),
                     child: Column(
@@ -795,65 +799,45 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             const Icon(
                               Icons.access_time,
                               size: 14,
-                              color: Colors.black54,
+                              color: Color(0xFF4A6360),
                             ),
                             const SizedBox(width: 4),
-                            Text(
-                              dateStr,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: Colors.black54,
-                                fontWeight: FontWeight.w600,
+                            Expanded(
+                              child: Text(
+                                dateStr,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                softWrap: false,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: Color(0xFF4A6360),
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
-
-                        // Summary chips
-                        Wrap(
-                          spacing: 4,
-                          runSpacing: 4,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            // Best item recommendation
-                            if (item.best != null)
+                        if (item.best != null) ...[
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 6,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
                               _buildSummaryChip(
                                 icon: Icons.thumb_up_alt_outlined,
                                 label: tr(
                                   'home.chip_best',
-                                  namedArgs: {'name': item.best!.menuName},
+                                  namedArgs: {
+                                    'name': _menuNameOrUnknown(
+                                      item.best!.menuName,
+                                    ),
+                                  },
                                 ),
-                                color: Colors.teal.shade700,
                               ),
-                            _buildSummaryChip(
-                              icon: Icons.restaurant_menu,
-                              label: tr(
-                                'home.chip_menu_count',
-                                namedArgs: {'count': '$menuCount'},
-                              ),
-                              color: Colors.teal.shade700,
-                            ),
-                            if (safeCount > 0)
-                              _buildSummaryChip(
-                                icon: Icons.check_circle_outline,
-                                label: tr(
-                                  'home.chip_safe_count',
-                                  namedArgs: {'count': '$safeCount'},
-                                ),
-                                color: Colors.green.shade800,
-                              ),
-                            if (dangerCount > 0)
-                              _buildSummaryChip(
-                                icon: Icons.warning_amber_rounded,
-                                label: tr(
-                                  'home.chip_danger_count',
-                                  namedArgs: {'count': '$dangerCount'},
-                                ),
-                                color: Colors.red.shade800,
-                              ),
-                          ],
-                        ),
+                            ],
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -861,19 +845,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ),
             Positioned(
-              top: 8,
-              right: 8,
-              child: Material(
-                color: Colors.black.withOpacity(0.35),
-                shape: const CircleBorder(),
-                child: IconButton(
-                  tooltip: tr('home.history_delete_tooltip'),
-                  icon: const Icon(
-                    Icons.delete_outline,
-                    color: Colors.white,
-                    size: 20,
+              top: 10,
+              right: 10,
+              child: ClipOval(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Material(
+                    color: Colors.white.withOpacity(0.24),
+                    shape: const CircleBorder(),
+                    child: IconButton(
+                      tooltip: tr('home.history_delete_tooltip'),
+                      icon: const Icon(
+                        Icons.delete_outline_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      onPressed: () => _confirmDeleteHistory(item),
+                    ),
                   ),
-                  onPressed: () => _confirmDeleteHistory(item),
                 ),
               ),
             ),
@@ -886,21 +875,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Future<void> _confirmDeleteHistory(HistoryItem item) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(tr('home.history_delete_title')),
-          content: Text(tr('home.history_delete_content')),
+      builder: (dialogContext) {
+        return SafePlateDialog(
+          icon: Icons.delete_outline_rounded,
+          accentColor: const Color(0xFFD94B3A),
+          title: tr('home.history_delete_title'),
+          message: tr('home.history_delete_content'),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text(tr('common.cancel')),
+            SafePlateDialogButton.ghost(
+              label: tr('common.cancel'),
+              onPressed: () => Navigator.of(dialogContext).pop(false),
             ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: Text(
-                tr('common.delete'),
-                style: const TextStyle(color: Colors.redAccent),
-              ),
+            SafePlateDialogButton.filled(
+              label: tr('common.delete'),
+              accentColor: const Color(0xFFD94B3A),
+              onPressed: () => Navigator.of(dialogContext).pop(true),
             ),
           ],
         );
@@ -927,51 +916,102 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
-  Widget _buildSummaryChip({
-    required IconData icon,
-    required String label,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
+  Widget _buildSummaryChip({required IconData icon, required String label}) {
+    const accentColor = Color(0xFF0D7B76);
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxWidth: MediaQuery.of(context).size.width * 0.7,
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 12, color: color),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: color,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.38),
+          borderRadius: BorderRadius.circular(13),
+          border: Border.all(color: accentColor.withOpacity(0.35), width: 1),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 12, color: accentColor),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                softWrap: false,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: accentColor,
+                ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final diff = now.difference(date);
+  Widget _buildDrawerMenuTile({
+    required IconData icon,
+    required Color accentColor,
+    required String label,
+    required VoidCallback onTap,
+    bool isDestructive = false,
+  }) {
+    final titleColor = isDestructive
+        ? const Color(0xFFB83D30)
+        : const Color(0xFF253636);
 
-    if (diff.inMinutes < 1) return tr('home.time_just_now');
-    if (diff.inMinutes < 60) {
-      return tr('home.time_minutes_ago', namedArgs: {'value': '${diff.inMinutes}'});
-    }
-    if (diff.inHours < 24) {
-      return tr('home.time_hours_ago', namedArgs: {'value': '${diff.inHours}'});
-    }
-    if (diff.inDays < 7) {
-      return tr('home.time_days_ago', namedArgs: {'value': '${diff.inDays}'});
-    }
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.white.withOpacity(0.85)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF9CBAB4).withOpacity(0.17),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+        leading: Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: accentColor.withOpacity(0.15),
+          ),
+          child: Icon(icon, color: accentColor, size: 20),
+        ),
+        title: Text(
+          label,
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            color: titleColor,
+            fontSize: 15,
+          ),
+        ),
+        trailing: Icon(
+          Icons.arrow_forward_ios_rounded,
+          size: 16,
+          color: titleColor.withOpacity(0.58),
+        ),
+        onTap: onTap,
+      ),
+    );
+  }
 
-    return '${date.year}.${date.month.toString().padLeft(2, '0')}.${date.day.toString().padLeft(2, '0')}';
+  String _menuNameOrUnknown(String menuName) {
+    final normalized = menuName.trim();
+    if (normalized.isEmpty) return tr('common.unknown');
+    return normalized;
   }
 
   @override
@@ -981,9 +1021,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text(
-          'SafePlate',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
+        title: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.45),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: Colors.white.withOpacity(0.8)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.history_rounded,
+                size: 19,
+                color: Color(0xFF1E6B66),
+              ),
+              const SizedBox(width: 7),
+              Text(
+                tr('home.history_header'),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF1F3030),
+                  letterSpacing: 0.2,
+                ),
+              ),
+            ],
+          ),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -993,12 +1056,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             padding: const EdgeInsets.all(8.0),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.5),
+                color: Colors.white.withOpacity(0.65),
                 shape: BoxShape.circle,
+                border: Border.all(color: Colors.white.withOpacity(0.9)),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF7FA7A0).withOpacity(0.18),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: IconButton(
                 icon: const Icon(Icons.menu, size: 24),
-                color: Colors.black87,
+                color: const Color(0xFF253636),
                 onPressed: () => Scaffold.of(context).openDrawer(),
               ),
             ),
@@ -1008,229 +1079,206 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       drawer: Drawer(
         elevation: 0,
         child: Container(
-          decoration: const BoxDecoration(
-            gradient: AppDesign.backgroundGradient,
-          ),
+          decoration: const BoxDecoration(gradient: _homeBackgroundGradient),
           child: ListView(
-            padding: EdgeInsets.zero,
+            padding: const EdgeInsets.fromLTRB(14, 16, 14, 20),
             children: [
-              DrawerHeader(
-                decoration: const BoxDecoration(color: Colors.transparent),
-                child: Consumer(
-                  builder: (context, ref, child) {
-                    final authState = ref.watch(authProvider);
-                    final user = authState.value;
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
+              Consumer(
+                builder: (context, ref, child) {
+                  final authState = ref.watch(authProvider);
+                  final user = authState.value;
+                  final initial =
+                      user?.email.substring(0, 1).toUpperCase() ?? 'G';
+
+                  return Container(
+                    margin: const EdgeInsets.fromLTRB(2, 8, 2, 18),
+                    padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.62),
+                      borderRadius: BorderRadius.circular(22),
+                      border: Border.all(color: Colors.white.withOpacity(0.9)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF8DAEA8).withOpacity(0.2),
+                          blurRadius: 14,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Container(
                           padding: const EdgeInsets.all(3),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: Colors.teal.withOpacity(0.5),
+                              color: const Color(0xFF1B9A8D).withOpacity(0.45),
                               width: 2,
                             ),
                           ),
                           child: CircleAvatar(
-                            radius: 30,
-                            backgroundColor: Colors.white.withOpacity(0.8),
+                            radius: 26,
+                            backgroundColor: Colors.white.withOpacity(0.88),
                             child: Text(
-                              user?.email.substring(0, 1).toUpperCase() ?? 'G',
+                              initial,
                               style: const TextStyle(
-                                fontSize: 30,
-                                color: Colors.teal,
-                                fontWeight: FontWeight.bold,
+                                fontSize: 26,
+                                color: Color(0xFF14857B),
+                                fontWeight: FontWeight.w800,
                               ),
                             ),
                           ),
                         ),
-                        const SizedBox(height: 12),
-                        Text(
-                          user?.name ?? tr('common.user'),
-                          style: const TextStyle(
-                            color: Colors.black87,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          user?.email ?? 'guest@example.com',
-                          style: const TextStyle(
-                            color: Colors.black54,
-                            fontSize: 14,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                'SafePlate',
+                                style: TextStyle(
+                                  color: Color(0xFF1F3030),
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                user?.email ?? tr('common.unknown'),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Color(0xFF5D6F6E),
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
-                    );
-                  },
-                ),
+                    ),
+                  );
+                },
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: Column(
-                  children: [
-                    Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      decoration: AppDesign.glassDecoration.copyWith(
-                        borderRadius: BorderRadius.circular(15),
-                        color: Colors.white.withOpacity(0.4),
-                      ),
-                      child: ListTile(
-                        leading: const Icon(
-                          Icons.person_outline,
-                          color: Colors.teal,
-                        ),
-                        title: Text(
-                          tr('drawer.profile_management'),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        onTap: () {
-                          Navigator.pop(context);
-                          context.push('/profile');
-                        },
-                      ),
-                    ),
-                    Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      decoration: AppDesign.glassDecoration.copyWith(
-                        borderRadius: BorderRadius.circular(15),
-                        color: Colors.white.withOpacity(0.4),
-                      ),
-                      child: ListTile(
-                        leading: const Icon(
-                          Icons.group,
-                          color: Colors.indigoAccent,
-                        ),
-                        title: Text(
-                          tr('team.manage_title'),
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        trailing: const Icon(
-                          Icons.arrow_forward_ios_rounded,
-                          size: 18,
-                          color: Colors.black54,
-                        ),
-                        onTap: () {
-                          Navigator.pop(context);
-                          context.push('/teams');
-                        },
-                      ),
-                    ),
-                    Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      decoration: AppDesign.glassDecoration.copyWith(
-                        borderRadius: BorderRadius.circular(15),
-                        color: Colors.white.withOpacity(0.4),
-                      ),
-                      child: ListTile(
-                        leading: const Icon(
-                          Icons.language,
-                          color: Colors.blueAccent,
-                        ),
-                        title: Text(
-                          tr('drawer.language_change'),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        trailing: const Icon(
-                          Icons.arrow_forward_ios_rounded,
-                          size: 18,
-                          color: Colors.black54,
-                        ),
-                        onTap: () {
-                          Navigator.pop(context);
-                          _showLanguageSelectionBottomSheet(context);
-                        },
-                      ),
-                    ),
-                    Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      decoration: AppDesign.glassDecoration.copyWith(
-                        borderRadius: BorderRadius.circular(15),
-                        color: Colors.white.withOpacity(0.4),
-                      ),
-                      child: ListTile(
-                        leading: const Icon(
-                          Icons.logout,
-                          color: Colors.redAccent,
-                        ),
-                        title: Text(
-                          tr('drawer.logout'),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: Colors.redAccent,
-                          ),
-                        ),
-                        onTap: () async {
-                          Navigator.pop(context);
-                          await ref.read(authProvider.notifier).logout();
-                          if (mounted) {
-                            context.go('/login');
-                          }
-                        },
-                      ),
-                    ),
-                  ],
-                ),
+              _buildDrawerMenuTile(
+                icon: Icons.person_outline_rounded,
+                accentColor: const Color(0xFF14857B),
+                label: tr('drawer.profile_management'),
+                onTap: () {
+                  Navigator.pop(context);
+                  context.push('/profile');
+                },
+              ),
+              _buildDrawerMenuTile(
+                icon: Icons.group_rounded,
+                accentColor: const Color(0xFF2C74D8),
+                label: tr('team.manage_title'),
+                onTap: () {
+                  Navigator.pop(context);
+                  context.push('/teams');
+                },
+              ),
+              _buildDrawerMenuTile(
+                icon: Icons.language_rounded,
+                accentColor: const Color(0xFF6A60D9),
+                label: tr('drawer.language_change'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showLanguageSelectionBottomSheet(context);
+                },
+              ),
+              _buildDrawerMenuTile(
+                icon: Icons.logout_rounded,
+                accentColor: const Color(0xFFD65C4C),
+                label: tr('drawer.logout'),
+                isDestructive: true,
+                onTap: () async {
+                  Navigator.pop(context);
+                  await ref.read(authProvider.notifier).logout();
+                  if (mounted) {
+                    context.go('/login');
+                  }
+                },
               ),
             ],
           ),
         ),
       ),
       body: Container(
-        decoration: const BoxDecoration(gradient: AppDesign.backgroundGradient),
+        decoration: const BoxDecoration(gradient: _homeBackgroundGradient),
         child: SafeArea(
-          child: Column(
+          child: Stack(
             children: [
-              // Section header when there's history
-              if (historyState.items.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.history,
-                        size: 20,
-                        color: Colors.grey.shade600,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        tr('home.history_header'),
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey.shade700,
-                        ),
-                      ),
-                    ],
+              Positioned(
+                top: -70,
+                right: -36,
+                child: Container(
+                  width: 230,
+                  height: 230,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        const Color(0xFFB7DED6).withOpacity(0.7),
+                        const Color(0xFFB7DED6).withOpacity(0),
+                      ],
+                    ),
                   ),
                 ),
-              // Main content
-              Expanded(child: _buildHistoryList(historyState)),
+              ),
+              Positioned(
+                top: 120,
+                left: -68,
+                child: Container(
+                  width: 180,
+                  height: 180,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        const Color(0xFFCFE5F0).withOpacity(0.5),
+                        const Color(0xFFCFE5F0).withOpacity(0),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Column(
+                children: [Expanded(child: _buildHistoryList(historyState))],
+              ),
             ],
           ),
         ),
       ),
-      // FAB for scanning
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showTargetSelectionSheet(context),
-        backgroundColor: Colors.teal,
-        foregroundColor: Colors.white,
-        elevation: 4,
-        icon: const Icon(Icons.document_scanner_rounded),
-        label: Text(
-          tr('home.scan_button'),
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+      floatingActionButton: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF17A89B), Color(0xFF0D847B)],
+          ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF0D847B).withOpacity(0.35),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: FloatingActionButton.extended(
+          onPressed: () => _showTargetSelectionSheet(context),
+          backgroundColor: Colors.transparent,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          icon: const Icon(Icons.document_scanner_rounded),
+          label: Text(
+            tr('home.scan_button'),
+            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+          ),
         ),
       ),
     );
