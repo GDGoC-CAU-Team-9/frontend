@@ -15,8 +15,6 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/utils/error_utils.dart';
 import '../../../../shared/widgets/safeplate_dialog.dart';
 
-enum _HistoryChipStyle { recommendation, menuCount }
-
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -705,7 +703,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Widget _buildHistoryCard(HistoryItem item) {
     final dateStr = DateFormat('yyMMdd HH:mm').format(item.createdAt);
-    final menuCount = item.items.length;
 
     return GestureDetector(
       onTap: () {
@@ -810,42 +807,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               color: Color(0xFF4A6360),
                             ),
                             const SizedBox(width: 4),
-                            Text(
-                              dateStr,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: Color(0xFF4A6360),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const Text(
-                              ' / ',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Color(0xFF4A6360),
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            Text(
-                              tr(
-                                'home.chip_menu_count_compact',
-                                namedArgs: {'count': '$menuCount'},
-                              ),
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: Color(0xFF4A6360),
-                                fontWeight: FontWeight.w600,
+                            Expanded(
+                              child: Text(
+                                dateStr,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                softWrap: false,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: Color(0xFF4A6360),
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
-                        Wrap(
-                          spacing: 6,
-                          runSpacing: 6,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            if (item.best != null)
+                        if (item.best != null) ...[
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 6,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
                               _buildSummaryChip(
                                 icon: Icons.thumb_up_alt_outlined,
                                 label: tr(
@@ -856,19 +839,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                     ),
                                   },
                                 ),
-                                style: _HistoryChipStyle.recommendation,
-                              )
-                            else
-                              _buildSummaryChip(
-                                icon: Icons.restaurant_menu,
-                                label: tr(
-                                  'home.chip_menu_count',
-                                  namedArgs: {'count': '$menuCount'},
-                                ),
-                                style: _HistoryChipStyle.menuCount,
                               ),
-                          ],
-                        ),
+                            ],
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -947,20 +921,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
-  Widget _buildSummaryChip({
-    required IconData icon,
-    required String label,
-    required _HistoryChipStyle style,
-  }) {
-    final Color accentColor;
-    switch (style) {
-      case _HistoryChipStyle.recommendation:
-        accentColor = const Color(0xFF0D7B76);
-        break;
-      case _HistoryChipStyle.menuCount:
-        accentColor = const Color(0xFF1472BA);
-        break;
-    }
+  Widget _buildSummaryChip({required IconData icon, required String label}) {
+    const accentColor = Color(0xFF0D7B76);
 
     return ConstrainedBox(
       constraints: BoxConstraints(

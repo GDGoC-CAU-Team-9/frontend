@@ -220,24 +220,6 @@ class HistoryDetailScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 9,
-                      vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFDFC7A2),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      '${recommended.length}',
-                      style: const TextStyle(
-                        color: Color(0xFF5A3A23),
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
                 ],
               ),
               const SizedBox(height: 8),
@@ -579,7 +561,7 @@ class HistoryDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final recommended = _pickTopRecommendations(historyItem.items, limit: 5);
+    final recommended = _pickTopRecommendations(historyItem.items, limit: 7);
     final fallbackCount = historyItem.items
         .where((item) => item.isConservativeFallback)
         .length;
@@ -651,23 +633,28 @@ class HistoryDetailScreen extends StatelessWidget {
                             context,
                             historyItem.imageUrls.first,
                           ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(18),
-                            child: Image.network(
-                              historyItem.imageUrls.first,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  Container(
-                                    color: const Color(0xFFD9E8E5),
-                                    child: const Center(
-                                      child: Icon(
-                                        Icons.image_not_supported,
-                                        size: 40,
-                                        color: Color(0xFF759E97),
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              Image.network(
+                                historyItem.imageUrls.first,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Container(
+                                      color: const Color(0xFFD9E8E5),
+                                      child: const Center(
+                                        child: Icon(
+                                          Icons.image_not_supported,
+                                          size: 40,
+                                          color: Color(0xFF759E97),
+                                        ),
                                       ),
                                     ),
-                                  ),
-                            ),
+                              ),
+                              const IgnorePointer(
+                                child: Center(child: _ZoomHintOverlay()),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -760,6 +747,26 @@ class HistoryDetailScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ZoomHintOverlay extends StatelessWidget {
+  const _ZoomHintOverlay();
+
+  @override
+  Widget build(BuildContext context) {
+    return Icon(
+      Icons.zoom_in_rounded,
+      size: 34,
+      color: Colors.white.withValues(alpha: 0.84),
+      shadows: [
+        Shadow(
+          color: Colors.black.withValues(alpha: 0.24),
+          blurRadius: 10,
+          offset: const Offset(0, 2),
+        ),
+      ],
     );
   }
 }

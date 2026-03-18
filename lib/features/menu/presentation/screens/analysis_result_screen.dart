@@ -239,24 +239,6 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen> {
                       ],
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 9,
-                      vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFDFC7A2),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      '${recommended.length}',
-                      style: const TextStyle(
-                        color: Color(0xFF5A3A23),
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
                 ],
               ),
               const SizedBox(height: 8),
@@ -450,14 +432,26 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen> {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.68),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white.withValues(alpha: 0.72),
+            Colors.white.withValues(alpha: 0.60),
+          ],
+        ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.92)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.88)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF98B8B2).withOpacity(0.15),
-            blurRadius: 9,
+            color: const Color(0xFF95B2AC).withValues(alpha: 0.14),
+            blurRadius: 10,
             offset: const Offset(0, 4),
+          ),
+          BoxShadow(
+            color: Colors.white.withValues(alpha: 0.30),
+            blurRadius: 7,
+            offset: const Offset(-2, -2),
           ),
         ],
       ),
@@ -484,9 +478,9 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen> {
                   vertical: 5,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.55),
+                  color: Colors.white.withValues(alpha: 0.55),
                   borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: levelColor.withOpacity(0.7)),
+                  border: Border.all(color: levelColor.withValues(alpha: 0.7)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -629,7 +623,7 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen> {
               ),
             ),
             data: (results) {
-              final recommended = _pickTopRecommendations(results, limit: 5);
+              final recommended = _pickTopRecommendations(results, limit: 7);
               final fallbackCount = results
                   .where((item) => item.isConservativeFallback)
                   .length;
@@ -697,17 +691,22 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen> {
                         child: GestureDetector(
                           onTap: () =>
                               _showFullImage(context, widget.imagePath),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(18),
-                            child: kIsWeb
-                                ? Image.network(
-                                    widget.imagePath,
-                                    fit: BoxFit.cover,
-                                  )
-                                : Image.file(
-                                    File(widget.imagePath),
-                                    fit: BoxFit.cover,
-                                  ),
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              kIsWeb
+                                  ? Image.network(
+                                      widget.imagePath,
+                                      fit: BoxFit.cover,
+                                    )
+                                  : Image.file(
+                                      File(widget.imagePath),
+                                      fit: BoxFit.cover,
+                                    ),
+                              const IgnorePointer(
+                                child: Center(child: _ZoomHintOverlay()),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -807,6 +806,26 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _ZoomHintOverlay extends StatelessWidget {
+  const _ZoomHintOverlay();
+
+  @override
+  Widget build(BuildContext context) {
+    return Icon(
+      Icons.zoom_in_rounded,
+      size: 34,
+      color: Colors.white.withValues(alpha: 0.84),
+      shadows: [
+        Shadow(
+          color: Colors.black.withValues(alpha: 0.24),
+          blurRadius: 10,
+          offset: const Offset(0, 2),
+        ),
+      ],
     );
   }
 }
