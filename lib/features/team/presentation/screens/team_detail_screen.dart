@@ -125,25 +125,33 @@ class TeamDetailScreen extends ConsumerWidget {
                     if (team.members.isEmpty)
                       _buildMembersEmpty()
                     else
-                      GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              mainAxisSpacing: 10,
-                              crossAxisSpacing: 10,
-                              childAspectRatio: 1.12,
-                            ),
-                        itemCount: team.members.length,
-                        itemBuilder: (context, index) {
-                          final memberEmail = team.members[index];
-                          final isMe =
-                              currentUserEmail != null &&
-                              currentUserEmail == memberEmail;
-                          return _buildMemberCard(
-                            memberEmail: memberEmail,
-                            isMe: isMe,
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final calculatedCount = (constraints.maxWidth / 210)
+                              .floor();
+                          final crossAxisCount = calculatedCount.clamp(2, 6);
+
+                          return GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: crossAxisCount,
+                                  mainAxisSpacing: 10,
+                                  crossAxisSpacing: 10,
+                                  childAspectRatio: 1.12,
+                                ),
+                            itemCount: team.members.length,
+                            itemBuilder: (context, index) {
+                              final memberEmail = team.members[index];
+                              final isMe =
+                                  currentUserEmail != null &&
+                                  currentUserEmail == memberEmail;
+                              return _buildMemberCard(
+                                memberEmail: memberEmail,
+                                isMe: isMe,
+                              );
+                            },
                           );
                         },
                       ),
@@ -173,6 +181,10 @@ class TeamDetailScreen extends ConsumerWidget {
   }
 
   Widget _buildTeamHeaderCard(BuildContext context, TeamModel team) {
+    final createdDate =
+        team.createdAt?.toLocal().toString().split(' ')[0] ??
+        tr('common.unknown');
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
@@ -188,56 +200,70 @@ class TeamDetailScreen extends ConsumerWidget {
           ),
         ],
       ),
-      child: Column(
-        children: [
-          Container(
-            width: 90,
-            height: 90,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: const Color(0xFF0F8E83).withOpacity(0.12),
-            ),
-            child: const Icon(
-              Icons.groups_rounded,
-              size: 42,
-              color: Color(0xFF0F8E83),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            team.teamName,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.w800,
-              color: Color(0xFF1F3030),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            tr(
-              'team.created_at',
-              namedArgs: {
-                'date':
-                    team.createdAt?.toLocal().toString().split(' ')[0] ??
-                    tr('common.unknown'),
-              },
-            ),
-            style: const TextStyle(color: Color(0xFF5F7070), fontSize: 13),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            tr(
-              'team.team_id',
-              namedArgs: {'id': team.teamId?.toString() ?? '-'},
-            ),
-            style: const TextStyle(
-              color: Color(0xFF5F7070),
-              fontWeight: FontWeight.w600,
-              fontSize: 13,
-            ),
-          ),
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isCompact = constraints.maxWidth < 420;
+          final avatarSize = isCompact ? 82.0 : 94.0;
+          final iconSize = isCompact ? 38.0 : 44.0;
+          final titleSize = isCompact ? 28.0 : 34.0;
+
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                width: avatarSize,
+                height: avatarSize,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFF0F8E83).withOpacity(0.12),
+                ),
+                child: Icon(
+                  Icons.groups_rounded,
+                  size: iconSize,
+                  color: const Color(0xFF0F8E83),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      team.teamName,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: titleSize,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF1F3030),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      tr('team.created_at', namedArgs: {'date': createdDate}),
+                      style: const TextStyle(
+                        color: Color(0xFF5F7070),
+                        fontSize: 13,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      tr(
+                        'team.team_id',
+                        namedArgs: {'id': team.teamId?.toString() ?? '-'},
+                      ),
+                      style: const TextStyle(
+                        color: Color(0xFF5F7070),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

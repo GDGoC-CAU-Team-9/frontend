@@ -1110,68 +1110,57 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         ),
                       ],
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(3),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: const Color(
-                                    0xFF1B9A8D,
-                                  ).withOpacity(0.45),
-                                  width: 2,
-                                ),
-                              ),
-                              child: CircleAvatar(
-                                radius: 26,
-                                backgroundColor: Colors.white.withOpacity(0.88),
-                                child: Text(
-                                  initial,
-                                  style: const TextStyle(
-                                    fontSize: 26,
-                                    color: Color(0xFF14857B),
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
+                        Container(
+                          padding: const EdgeInsets.all(3),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: const Color(0xFF1B9A8D).withOpacity(0.45),
+                              width: 2,
+                            ),
+                          ),
+                          child: CircleAvatar(
+                            radius: 26,
+                            backgroundColor: Colors.white.withOpacity(0.88),
+                            child: Text(
+                              initial,
+                              style: const TextStyle(
+                                fontSize: 26,
+                                color: Color(0xFF14857B),
+                                fontWeight: FontWeight.w800,
                               ),
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'SafePlate',
-                                    style: TextStyle(
-                                      color: Color(0xFF1F3030),
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 14),
-                        Text(
-                          user?.name ?? tr('common.user'),
-                          style: const TextStyle(
-                            color: Color(0xFF233737),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
                           ),
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          user?.email ?? tr('common.unknown'),
-                          style: const TextStyle(
-                            color: Color(0xFF5D6F6E),
-                            fontSize: 13,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                'SafePlate',
+                                style: TextStyle(
+                                  color: Color(0xFF1F3030),
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                user?.email ?? tr('common.unknown'),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Color(0xFF5D6F6E),
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
