@@ -21,6 +21,7 @@ class TeamListScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final teamState = ref.watch(teamListProvider);
+    final topInset = MediaQuery.of(context).padding.top + kToolbarHeight + 12;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -43,6 +44,10 @@ class TeamListScreen extends ConsumerWidget {
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
+        shadowColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        forceMaterialTransparency: true,
         centerTitle: true,
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
@@ -67,6 +72,7 @@ class TeamListScreen extends ConsumerWidget {
           ),
           IgnorePointer(child: _buildBackgroundTeamIcon()),
           SafeArea(
+            top: false,
             child: teamState.when(
               loading: () => const Center(
                 child: CircularProgressIndicator(color: Color(0xFF0F8E83)),
@@ -91,7 +97,7 @@ class TeamListScreen extends ConsumerWidget {
                   onRefresh: () =>
                       ref.read(teamListProvider.notifier).fetchInitial(),
                   child: ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 92),
+                    padding: EdgeInsets.fromLTRB(16, topInset, 16, 92),
                     itemCount: teams.length,
                     itemBuilder: (context, index) {
                       final team = teams[index];

@@ -576,8 +576,206 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  void _showSideMenuOverlay(BuildContext parentContext) {
+    showGeneralDialog(
+      context: parentContext,
+      barrierDismissible: true,
+      barrierLabel: 'side_menu',
+      barrierColor: Colors.transparent,
+      transitionDuration: const Duration(milliseconds: 280),
+      pageBuilder: (dialogContext, animation, secondaryAnimation) {
+        return Material(
+          type: MaterialType.transparency,
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 340),
+              child: SizedBox(
+                width: MediaQuery.of(parentContext).size.width * 0.72,
+                child: SafeArea(
+                  right: false,
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(14, 16, 14, 20),
+                    children: [
+                      Consumer(
+                        builder: (context, ref, child) {
+                          final authState = ref.watch(authProvider);
+                          final user = authState.value;
+                          final initial =
+                              user?.email.substring(0, 1).toUpperCase() ?? 'G';
+
+                            return Container(
+                              margin: const EdgeInsets.fromLTRB(2, 8, 2, 18),
+                              padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
+                              decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.82),
+                              borderRadius: BorderRadius.circular(22),
+                              border: Border.all(color: Colors.white.withOpacity(0.98)),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF8DAEA8).withOpacity(0.2),
+                                  blurRadius: 14,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(3),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: const Color(0xFF1B9A8D).withOpacity(0.45),
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: CircleAvatar(
+                                    radius: 26,
+                                      backgroundColor: Colors.white.withOpacity(0.98),
+                                    child: Text(
+                                      initial,
+                                      style: const TextStyle(
+                                        fontSize: 26,
+                                        color: Color(0xFF14857B),
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Text(
+                                        'SafePlate',
+                                        style: TextStyle(
+                                          color: Color(0xFF1F3030),
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        user?.email ?? tr('common.unknown'),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          color: Color(0xFF5D6F6E),
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                      _buildDrawerMenuTile(
+                        icon: Icons.person_outline_rounded,
+                        accentColor: const Color(0xFF14857B),
+                        label: tr('drawer.profile_management'),
+                        onTap: () {
+                          Navigator.of(dialogContext).pop();
+                          parentContext.push('/profile');
+                        },
+                      ),
+                      _buildDrawerMenuTile(
+                        icon: Icons.group_rounded,
+                        accentColor: const Color(0xFF2C74D8),
+                        label: tr('team.manage_title'),
+                        onTap: () {
+                          Navigator.of(dialogContext).pop();
+                          parentContext.push('/teams');
+                        },
+                      ),
+                      _buildDrawerMenuTile(
+                        icon: Icons.language_rounded,
+                        accentColor: const Color(0xFF6A60D9),
+                        label: tr('drawer.language_change'),
+                        onTap: () {
+                          Navigator.of(dialogContext).pop();
+                          Future.delayed(
+                            const Duration(milliseconds: 60),
+                            () => _showLanguageSelectionBottomSheet(parentContext),
+                          );
+                        },
+                      ),
+                      _buildDrawerMenuTile(
+                        icon: Icons.logout_rounded,
+                        accentColor: const Color(0xFFD65C4C),
+                        label: tr('drawer.logout'),
+                        isDestructive: true,
+                        onTap: () async {
+                          Navigator.of(dialogContext).pop();
+                          await ref.read(authProvider.notifier).logout();
+                          if (mounted) {
+                            parentContext.go('/login');
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+          reverseCurve: Curves.easeInCubic,
+        );
+        final blurValue = Tween<double>(begin: 0, end: 5).transform(curved.value);
+        final dimValue = Tween<double>(begin: 0, end: 0.34).transform(curved.value);
+        final panelOffset = Tween<double>(begin: -0.03, end: 0).transform(
+          curved.value,
+        );
+
+        return Material(
+          type: MaterialType.transparency,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => Navigator.of(context).pop(),
+                  child: ClipRect(
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(
+                        sigmaX: blurValue,
+                        sigmaY: blurValue,
+                      ),
+                      child: Container(
+                        color: Colors.black.withOpacity(dimValue),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              FractionalTranslation(
+                translation: Offset(panelOffset, 0),
+                child: FadeTransition(opacity: curved, child: child),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   // ── History list body ──
   Widget _buildHistoryList(HistoryListState historyState) {
+    final topInset = MediaQuery.of(context).padding.top + kToolbarHeight + 10;
+
     // Error state
     if (historyState.errorMessage != null && historyState.items.isEmpty) {
       return Center(
@@ -656,42 +854,46 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return RefreshIndicator(
       onRefresh: () => ref.read(historyListProvider.notifier).refresh(),
       color: const Color(0xFF128B7E),
-      child: CustomScrollView(
-        slivers: [
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 10, 20, 92),
-            sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
-                mainAxisExtent: 252,
+      child: MediaQuery.removePadding(
+        context: context,
+        removeTop: true,
+        child: CustomScrollView(
+          slivers: [
+            SliverPadding(
+              padding: EdgeInsets.fromLTRB(20, topInset, 20, 92),
+              sliver: SliverGrid(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 16,
+                  crossAxisSpacing: 16,
+                  mainAxisExtent: 252,
+                ),
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final item = historyState.items[index];
+                  return _buildHistoryCard(item);
+                }, childCount: historyState.items.length),
               ),
-              delegate: SliverChildBuilderDelegate((context, index) {
-                final item = historyState.items[index];
-                return _buildHistoryCard(item);
-              }, childCount: historyState.items.length),
             ),
-          ),
-          if (historyState.hasMore)
-            SliverToBoxAdapter(
-              child: Builder(
-                builder: (context) {
-                  if (!historyState.isLoading) {
-                    Future.microtask(
-                      () => ref.read(historyListProvider.notifier).loadMore(),
+            if (historyState.hasMore)
+              SliverToBoxAdapter(
+                child: Builder(
+                  builder: (context) {
+                    if (!historyState.isLoading) {
+                      Future.microtask(
+                        () => ref.read(historyListProvider.notifier).loadMore(),
+                      );
+                    }
+                    return const Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Center(
+                        child: CircularProgressIndicator(color: Colors.teal),
+                      ),
                     );
-                  }
-                  return const Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Center(
-                      child: CircularProgressIndicator(color: Colors.teal),
-                    ),
-                  );
-                },
+                  },
+                ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -965,12 +1167,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.5),
+        color: Colors.white.withOpacity(0.79),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white.withOpacity(0.85)),
+        border: Border.all(color: Colors.white.withOpacity(0.97)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF9CBAB4).withOpacity(0.17),
+            color: const Color(0xFF9CBAB4).withOpacity(0.2),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -1047,6 +1249,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
+        shadowColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        forceMaterialTransparency: true,
         centerTitle: true,
         leading: Builder(
           builder: (context) => Padding(
@@ -1067,146 +1273,189 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               child: IconButton(
                 icon: const Icon(Icons.menu, size: 24),
                 color: const Color(0xFF253636),
-                onPressed: () => Scaffold.of(context).openDrawer(),
+                onPressed: () => _showSideMenuOverlay(context),
               ),
             ),
           ),
         ),
       ),
+      drawerEnableOpenDragGesture: false,
       drawer: Drawer(
         elevation: 0,
-        child: Container(
-          decoration: const BoxDecoration(gradient: _homeBackgroundGradient),
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(14, 16, 14, 20),
-            children: [
-              Consumer(
-                builder: (context, ref, child) {
-                  final authState = ref.watch(authProvider);
-                  final user = authState.value;
-                  final initial =
-                      user?.email.substring(0, 1).toUpperCase() ?? 'G';
-
-                  return Container(
-                    margin: const EdgeInsets.fromLTRB(2, 8, 2, 18),
-                    padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.62),
-                      borderRadius: BorderRadius.circular(22),
-                      border: Border.all(color: Colors.white.withOpacity(0.9)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF8DAEA8).withOpacity(0.2),
-                          blurRadius: 14,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
+        width: MediaQuery.of(context).size.width,
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        shadowColor: Colors.transparent,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTap: () => Navigator.of(context).pop(),
+                child: ClipRect(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                    child: Container(
+                      color: Colors.black.withOpacity(0.34),
                     ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                  ),
+                ),
+              ),
+            ),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 340),
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.72,
+                  child: SafeArea(
+                    right: false,
+                    child: ListView(
+                      padding: const EdgeInsets.fromLTRB(14, 16, 14, 20),
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(3),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: const Color(0xFF1B9A8D).withOpacity(0.45),
-                              width: 2,
-                            ),
-                          ),
-                          child: CircleAvatar(
-                            radius: 26,
-                            backgroundColor: Colors.white.withOpacity(0.88),
-                            child: Text(
-                              initial,
-                              style: const TextStyle(
-                                fontSize: 26,
-                                color: Color(0xFF14857B),
-                                fontWeight: FontWeight.w800,
+                        Consumer(
+                          builder: (context, ref, child) {
+                            final authState = ref.watch(authProvider);
+                            final user = authState.value;
+                            final initial =
+                                user?.email.substring(0, 1).toUpperCase() ?? 'G';
+
+                            return Container(
+                              margin: const EdgeInsets.fromLTRB(2, 8, 2, 18),
+                              padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.62),
+                                borderRadius: BorderRadius.circular(22),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.9),
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(
+                                      0xFF8DAEA8,
+                                    ).withOpacity(0.2),
+                                    blurRadius: 14,
+                                    offset: const Offset(0, 8),
+                                  ),
+                                ],
                               ),
-                            ),
-                          ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(3),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: const Color(
+                                          0xFF1B9A8D,
+                                        ).withOpacity(0.45),
+                                        width: 2,
+                                      ),
+                                    ),
+                                    child: CircleAvatar(
+                                      radius: 26,
+                                      backgroundColor: Colors.white.withOpacity(
+                                        0.88,
+                                      ),
+                                      child: Text(
+                                        initial,
+                                        style: const TextStyle(
+                                          fontSize: 26,
+                                          color: Color(0xFF14857B),
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        const Text(
+                                          'SafePlate',
+                                          style: TextStyle(
+                                            color: Color(0xFF1F3030),
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 6),
+                                        Text(
+                                          user?.email ?? tr('common.unknown'),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            color: Color(0xFF5D6F6E),
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text(
-                                'SafePlate',
-                                style: TextStyle(
-                                  color: Color(0xFF1F3030),
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                user?.email ?? tr('common.unknown'),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: Color(0xFF5D6F6E),
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
-                          ),
+                        _buildDrawerMenuTile(
+                          icon: Icons.person_outline_rounded,
+                          accentColor: const Color(0xFF14857B),
+                          label: tr('drawer.profile_management'),
+                          onTap: () {
+                            Navigator.pop(context);
+                            context.push('/profile');
+                          },
+                        ),
+                        _buildDrawerMenuTile(
+                          icon: Icons.group_rounded,
+                          accentColor: const Color(0xFF2C74D8),
+                          label: tr('team.manage_title'),
+                          onTap: () {
+                            Navigator.pop(context);
+                            context.push('/teams');
+                          },
+                        ),
+                        _buildDrawerMenuTile(
+                          icon: Icons.language_rounded,
+                          accentColor: const Color(0xFF6A60D9),
+                          label: tr('drawer.language_change'),
+                          onTap: () {
+                            Navigator.pop(context);
+                            _showLanguageSelectionBottomSheet(context);
+                          },
+                        ),
+                        _buildDrawerMenuTile(
+                          icon: Icons.logout_rounded,
+                          accentColor: const Color(0xFFD65C4C),
+                          label: tr('drawer.logout'),
+                          isDestructive: true,
+                          onTap: () async {
+                            Navigator.pop(context);
+                            await ref.read(authProvider.notifier).logout();
+                            if (mounted) {
+                              context.go('/login');
+                            }
+                          },
                         ),
                       ],
                     ),
-                  );
-                },
+                  ),
+                ),
               ),
-              _buildDrawerMenuTile(
-                icon: Icons.person_outline_rounded,
-                accentColor: const Color(0xFF14857B),
-                label: tr('drawer.profile_management'),
-                onTap: () {
-                  Navigator.pop(context);
-                  context.push('/profile');
-                },
-              ),
-              _buildDrawerMenuTile(
-                icon: Icons.group_rounded,
-                accentColor: const Color(0xFF2C74D8),
-                label: tr('team.manage_title'),
-                onTap: () {
-                  Navigator.pop(context);
-                  context.push('/teams');
-                },
-              ),
-              _buildDrawerMenuTile(
-                icon: Icons.language_rounded,
-                accentColor: const Color(0xFF6A60D9),
-                label: tr('drawer.language_change'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _showLanguageSelectionBottomSheet(context);
-                },
-              ),
-              _buildDrawerMenuTile(
-                icon: Icons.logout_rounded,
-                accentColor: const Color(0xFFD65C4C),
-                label: tr('drawer.logout'),
-                isDestructive: true,
-                onTap: () async {
-                  Navigator.pop(context);
-                  await ref.read(authProvider.notifier).logout();
-                  if (mounted) {
-                    context.go('/login');
-                  }
-                },
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
       body: Container(
         decoration: const BoxDecoration(gradient: _homeBackgroundGradient),
         child: SafeArea(
+          top: false,
           child: Stack(
             children: [
               Positioned(

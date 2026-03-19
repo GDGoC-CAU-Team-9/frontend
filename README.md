@@ -10,11 +10,15 @@ SafePlate는 개인/팀의 기피 재료(알러지, 종교, 식습관)를 반영
 ## 화면 미리보기
 | 로그인 | 언어 설정 |
 | --- | --- |
-| ![로그인 화면](./image/login.png) | ![언어 설정 화면](./image/language.png) |
+| ![로그인 화면](./image/v0.9.1/login.png) | ![언어 설정 화면](./image/v0.9.1/language.png) |
 
 | 분석 기록 | 분석 결과 |
 | --- | --- |
-| ![분석 기록 화면](./image/history.png) | ![분석 결과 화면](./image/result.png) |
+| ![분석 기록 화면](./image/v0.9.1/history.png) | ![분석 결과 화면](./image/v0.9.1/result.png) |
+
+| 기피재료 관리 | 사이드바 |
+| --- | --- |
+| ![기피재료 관리 화면](./image/v0.9.1/avoid.png) | ![사이드바 화면](./image/v0.9.1/sidebar.png) |
 
 ## 핵심 기능
 - 이메일 기반 회원가입/로그인

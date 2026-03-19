@@ -18,6 +18,7 @@ class AvoidListScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final avoidItemsAsync = ref.watch(myAvoidItemsProvider);
+    final topInset = MediaQuery.of(context).padding.top + kToolbarHeight + 12;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -40,6 +41,10 @@ class AvoidListScreen extends ConsumerWidget {
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
+        shadowColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        forceMaterialTransparency: true,
         centerTitle: true,
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
@@ -64,6 +69,7 @@ class AvoidListScreen extends ConsumerWidget {
           ),
           IgnorePointer(child: _buildBackgroundVegetableIcon()),
           SafeArea(
+            top: false,
             child: avoidItemsAsync.when(
               loading: () => const Center(
                 child: CircularProgressIndicator(color: Color(0xFF0F8E83)),
@@ -104,46 +110,50 @@ class AvoidListScreen extends ConsumerWidget {
               data: (items) {
                 if (items.isEmpty) return _buildEmptyState();
 
-                return Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                      child: _buildSummaryCard(items.length),
-                    ),
-                    const SizedBox(height: 10),
-                    Expanded(
-                      child: ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: items.length,
-                        itemBuilder: (context, index) {
-                          final item = items[index];
-                          return Dismissible(
-                            key: Key(item),
-                            direction: DismissDirection.endToStart,
-                            background: Container(
-                              margin: const EdgeInsets.only(bottom: 10),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFE25545),
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              alignment: Alignment.centerRight,
-                              padding: const EdgeInsets.only(right: 20),
-                              child: const Icon(
-                                Icons.delete_outline_rounded,
-                                color: Colors.white,
-                              ),
-                            ),
-                            onDismissed: (_) =>
-                                _handleRemove(context, ref, item),
-                            child: _buildAvoidItemTile(
-                              item: item,
-                              onRemove: () => _handleRemove(context, ref, item),
-                            ),
+                return RefreshIndicator(
+                  color: const Color(0xFF0F8E83),
+                  onRefresh: () async => ref.invalidate(myAvoidItemsProvider),
+                  child: MediaQuery.removePadding(
+                    context: context,
+                    removeTop: true,
+                    child: ListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: EdgeInsets.fromLTRB(16, topInset, 16, 16),
+                      itemCount: items.length + 1,
+                      itemBuilder: (context, index) {
+                        if (index == 0) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: _buildSummaryCard(items.length),
                           );
-                        },
-                      ),
+                        }
+
+                        final item = items[index - 1];
+                        return Dismissible(
+                          key: Key(item),
+                          direction: DismissDirection.endToStart,
+                          background: Container(
+                            margin: const EdgeInsets.only(bottom: 10),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE25545),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            alignment: Alignment.centerRight,
+                            padding: const EdgeInsets.only(right: 20),
+                            child: const Icon(
+                              Icons.delete_outline_rounded,
+                              color: Colors.white,
+                            ),
+                          ),
+                          onDismissed: (_) => _handleRemove(context, ref, item),
+                          child: _buildAvoidItemTile(
+                            item: item,
+                            onRemove: () => _handleRemove(context, ref, item),
+                          ),
+                        );
+                      },
                     ),
-                  ],
+                  ),
                 );
               },
             ),
