@@ -64,6 +64,7 @@ class ProfileScreen extends StatelessWidget {
           Container(
             decoration: const BoxDecoration(gradient: _backgroundGradient),
           ),
+          const IgnorePointer(child: _ProfileBackgroundGear()),
           SafeArea(
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
@@ -88,7 +89,6 @@ class ProfileScreen extends StatelessWidget {
               ],
             ),
           ),
-          const IgnorePointer(child: _ProfileBackgroundGear()),
         ],
       ),
     );

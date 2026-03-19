@@ -288,10 +288,15 @@ class TeamDetailScreen extends ConsumerWidget {
                 shape: BoxShape.circle,
                 color: const Color(0xFF0F8E83).withOpacity(0.12),
               ),
-              child: const Icon(
-                Icons.badge_outlined,
-                color: Color(0xFF0F8E83),
-                size: 19,
+              child: Center(
+                child: Transform.translate(
+                  offset: Offset(0, 0.8),
+                  child: Icon(
+                    Icons.badge_outlined,
+                    color: Color(0xFF0F8E83),
+                    size: 19,
+                  ),
+                ),
               ),
             ),
             const SizedBox(width: 10),

@@ -167,31 +167,34 @@ class TeamListScreen extends ConsumerWidget {
           ),
         ],
       ),
-      floatingActionButton: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF17A89B), Color(0xFF0D847B)],
-          ),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF0D847B).withOpacity(0.35),
-              blurRadius: 16,
-              offset: const Offset(0, 8),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 3),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF17A89B), Color(0xFF0D847B)],
             ),
-          ],
-        ),
-        child: FloatingActionButton.extended(
-          onPressed: () => _showTeamActionDialog(context, ref),
-          backgroundColor: Colors.transparent,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          icon: const Icon(Icons.add_rounded),
-          label: Text(
-            tr('team.add_button'),
-            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF0D847B).withOpacity(0.35),
+                blurRadius: 16,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: FloatingActionButton.extended(
+            onPressed: () => _showTeamActionDialog(context, ref),
+            backgroundColor: Colors.transparent,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            icon: const Icon(Icons.add_rounded),
+            label: Text(
+              tr('team.add_button'),
+              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+            ),
           ),
         ),
       ),

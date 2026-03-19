@@ -772,10 +772,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               left: 0,
               right: 0,
               bottom: 0,
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(18),
-                ),
+              child: ClipRect(
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                   child: Container(
@@ -1253,31 +1250,34 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ),
       ),
-      floatingActionButton: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF17A89B), Color(0xFF0D847B)],
-          ),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF0D847B).withOpacity(0.35),
-              blurRadius: 16,
-              offset: const Offset(0, 8),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 3),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF17A89B), Color(0xFF0D847B)],
             ),
-          ],
-        ),
-        child: FloatingActionButton.extended(
-          onPressed: () => _showTargetSelectionSheet(context),
-          backgroundColor: Colors.transparent,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          icon: const Icon(Icons.document_scanner_rounded),
-          label: Text(
-            tr('home.scan_button'),
-            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF0D847B).withOpacity(0.35),
+                blurRadius: 16,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: FloatingActionButton.extended(
+            onPressed: () => _showTargetSelectionSheet(context),
+            backgroundColor: Colors.transparent,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            icon: const Icon(Icons.document_scanner_rounded),
+            label: Text(
+              tr('home.scan_button'),
+              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+            ),
           ),
         ),
       ),

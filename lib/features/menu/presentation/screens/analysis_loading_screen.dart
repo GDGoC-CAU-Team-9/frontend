@@ -114,16 +114,21 @@ class _AnalysisLoadingScreenState extends ConsumerState<AnalysisLoadingScreen>
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       // SafePlate Logo/Icon
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.3),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.camera, // Placeholder for App Icon
-                          size: 40,
-                          color: Colors.teal,
+                      ClipOval(
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.3),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.camera, // Placeholder for App Icon
+                              size: 40,
+                              color: Colors.teal,
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 10),
@@ -215,16 +220,21 @@ class _AnalysisLoadingScreenState extends ConsumerState<AnalysisLoadingScreen>
                       context.go('/home');
                     }
                   },
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.5),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.close,
-                      color: Colors.black54,
-                      size: 24,
+                  child: ClipOval(
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.5),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.close,
+                          color: Colors.black54,
+                          size: 24,
+                        ),
+                      ),
                     ),
                   ),
                 ),
