@@ -77,7 +77,21 @@
     "preset_load_failed": "Impossible de charger les presets.",
     "preset_selected": "Preset appliqué récemment : {name}",
     "preset_applied_with_count": "Preset '{name}' appliqué (+{count})",
-    "preset_apply_failed": "Échec de l'application du preset : {message}"
+    "preset_apply_failed": "Échec de l'application du preset : {message}",
+    "preset_add_button": "Ajouter depuis les presets",
+    "preset_sheet_title": "Choisir un preset",
+    "preset_sheet_desc": "Consultez les ingrédients du preset et ajoutez-les aux candidats.",
+    "preset_items_count": "{count} éléments",
+    "preset_confirm_title": "Ajouter le preset {name}",
+    "preset_confirm_desc": "Ajouter les ingrédients suivants aux candidats ?",
+    "preset_confirm_add": "Ajouter",
+    "preset_items_unknown": "Les détails du preset ne sont pas disponibles.",
+    "preset_name_1": "Vegan",
+    "preset_name_2": "Islam (Halal)",
+    "preset_name_3": "Judaïsme (Casher)",
+    "preset_name_4": "Bouddhisme",
+    "preset_name_5": "Jaïnisme",
+    "preset_name_6": "Grossesse"
   },
   "home": {
     "image_pick_failed_with_message": "Échec de la sélection de l'image : {message}",

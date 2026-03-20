@@ -77,7 +77,21 @@
     "preset_load_failed": "프리셋을 불러오지 못했습니다.",
     "preset_selected": "최근 적용 프리셋: {name}",
     "preset_applied_with_count": "'{name}' 프리셋 적용 완료 (+{count})",
-    "preset_apply_failed": "프리셋 적용 실패: {message}"
+    "preset_apply_failed": "프리셋 적용 실패: {message}",
+    "preset_add_button": "프리셋에서 추가하기",
+    "preset_sheet_title": "프리셋 선택",
+    "preset_sheet_desc": "프리셋 안의 기피재료를 확인하고 후보에 추가할 수 있습니다.",
+    "preset_items_count": "{count}개 항목",
+    "preset_confirm_title": "{name} 프리셋 추가",
+    "preset_confirm_desc": "아래 기피재료를 후보에 추가할까요?",
+    "preset_confirm_add": "추가하기",
+    "preset_items_unknown": "프리셋 항목 정보를 확인할 수 없습니다.",
+    "preset_name_1": "비건",
+    "preset_name_2": "이슬람(할랄)",
+    "preset_name_3": "유대교(코셔)",
+    "preset_name_4": "불교",
+    "preset_name_5": "자이나교",
+    "preset_name_6": "임산부"
   },
   "home": {
     "image_pick_failed_with_message": "이미지 선택 실패: {message}",

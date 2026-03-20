@@ -1255,7 +1255,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
               const SizedBox(width: 7),
               Text(
-                tr('home.history_header'),
+                context.tr('home.history_header'),
                 style: const TextStyle(
                   fontWeight: FontWeight.w800,
                   color: Color(0xFF1F3030),

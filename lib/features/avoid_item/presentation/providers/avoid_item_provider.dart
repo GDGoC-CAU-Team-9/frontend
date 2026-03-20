@@ -87,16 +87,18 @@ class AvoidItemNotifier extends StateNotifier<AvoidItemState> {
     state = AvoidItemState();
   }
 
-  /// 프리셋 상세를 불러와 추출 목록에 병합
-  Future<int> applyPreset(int presetId) async {
+  /// 프리셋 아이템을 추출 목록에 병합
+  Future<int> applyPreset(AvoidPresetSummary preset) async {
     state = state.copyWith(isPresetLoading: true);
     try {
-      final preset = await _repository.getAvoidPresetById(presetId);
+      List<String> presetItems = preset.items;
+      if (presetItems.isEmpty) {
+        final detail = await _repository.getAvoidPresetById(preset.id);
+        presetItems = detail.avoidItems;
+      }
+
       final beforeCount = state.extractedItems.length;
-      final merged = <String>{
-        ...state.extractedItems,
-        ...preset.avoidItems,
-      }.toList();
+      final merged = <String>{...state.extractedItems, ...presetItems}.toList();
       final addedCount = merged.length - beforeCount;
 
       state = state.copyWith(

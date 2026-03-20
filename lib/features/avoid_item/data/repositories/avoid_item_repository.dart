@@ -13,12 +13,14 @@ class AvoidPresetSummary {
   final String name;
   final String description;
   final int? avoidItemCount;
+  final List<String> items;
 
   const AvoidPresetSummary({
     required this.id,
     required this.name,
     this.description = '',
     this.avoidItemCount,
+    this.items = const [],
   });
 
   static int _parseInt(dynamic value) {
@@ -27,7 +29,24 @@ class AvoidPresetSummary {
     return int.tryParse(value?.toString() ?? '') ?? 0;
   }
 
+  static List<String> _parseStringList(dynamic raw) {
+    if (raw is List) {
+      return raw.map((e) => e.toString()).toList();
+    }
+    return const [];
+  }
+
   factory AvoidPresetSummary.fromJson(Map<String, dynamic> json) {
+    final items = _parseStringList(
+      json['items'] ??
+          json['avoidItems'] ??
+          json['avoid_items'] ??
+          json['presetItems'],
+    );
+    final parsedCount = json['avoidItemCount'] != null
+        ? _parseInt(json['avoidItemCount'])
+        : (json['itemCount'] != null ? _parseInt(json['itemCount']) : 0);
+
     return AvoidPresetSummary(
       id: _parseInt(json['presetId'] ?? json['id']),
       name: (json['presetName'] ?? json['name'] ?? json['title'] ?? '')
@@ -36,9 +55,10 @@ class AvoidPresetSummary {
       description: (json['description'] ?? json['summary'] ?? '')
           .toString()
           .trim(),
-      avoidItemCount: json['avoidItemCount'] != null
-          ? _parseInt(json['avoidItemCount'])
-          : (json['itemCount'] != null ? _parseInt(json['itemCount']) : null),
+      avoidItemCount: parsedCount > 0
+          ? parsedCount
+          : (items.isNotEmpty ? items.length : null),
+      items: items,
     );
   }
 }

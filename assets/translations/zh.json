@@ -77,7 +77,21 @@
     "preset_load_failed": "预设加载失败。",
     "preset_selected": "最近应用的预设：{name}",
     "preset_applied_with_count": "已应用“{name}”（+{count}）",
-    "preset_apply_failed": "应用预设失败：{message}"
+    "preset_apply_failed": "应用预设失败：{message}",
+    "preset_add_button": "从预设添加",
+    "preset_sheet_title": "选择预设",
+    "preset_sheet_desc": "查看预设中的忌口食材并添加到候选列表。",
+    "preset_items_count": "{count}项",
+    "preset_confirm_title": "添加预设 {name}",
+    "preset_confirm_desc": "要将以下忌口食材添加到候选列表吗？",
+    "preset_confirm_add": "添加",
+    "preset_items_unknown": "无法获取该预设的条目详情。",
+    "preset_name_1": "纯素",
+    "preset_name_2": "伊斯兰（清真）",
+    "preset_name_3": "犹太教（洁食）",
+    "preset_name_4": "佛教",
+    "preset_name_5": "耆那教",
+    "preset_name_6": "孕期"
   },
   "home": {
     "image_pick_failed_with_message": "选择图片失败：{message}",

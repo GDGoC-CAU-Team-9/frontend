@@ -77,7 +77,21 @@
     "preset_load_failed": "Failed to load presets.",
     "preset_selected": "Recently applied preset: {name}",
     "preset_applied_with_count": "Applied '{name}' (+{count})",
-    "preset_apply_failed": "Failed to apply preset: {message}"
+    "preset_apply_failed": "Failed to apply preset: {message}",
+    "preset_add_button": "Add from Presets",
+    "preset_sheet_title": "Choose a Preset",
+    "preset_sheet_desc": "Review preset avoid items and add them to candidates.",
+    "preset_items_count": "{count} items",
+    "preset_confirm_title": "Add {name} preset",
+    "preset_confirm_desc": "Add the following avoid items to candidates?",
+    "preset_confirm_add": "Add",
+    "preset_items_unknown": "Preset item details are unavailable.",
+    "preset_name_1": "Vegan",
+    "preset_name_2": "Islam (Halal)",
+    "preset_name_3": "Judaism (Kosher)",
+    "preset_name_4": "Buddhism",
+    "preset_name_5": "Jainism",
+    "preset_name_6": "Pregnancy"
   },
   "home": {
     "image_pick_failed_with_message": "Failed to pick image: {message}",

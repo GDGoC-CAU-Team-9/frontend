@@ -77,7 +77,21 @@
     "preset_load_failed": "プリセットの読み込みに失敗しました。",
     "preset_selected": "最近適用したプリセット: {name}",
     "preset_applied_with_count": "'{name}' を適用しました (+{count})",
-    "preset_apply_failed": "プリセットの適用に失敗しました: {message}"
+    "preset_apply_failed": "プリセットの適用に失敗しました: {message}",
+    "preset_add_button": "プリセットから追加",
+    "preset_sheet_title": "プリセットを選択",
+    "preset_sheet_desc": "プリセットの忌避食材を確認して候補に追加できます。",
+    "preset_items_count": "{count}項目",
+    "preset_confirm_title": "{name}プリセットを追加",
+    "preset_confirm_desc": "以下の忌避食材を候補に追加しますか？",
+    "preset_confirm_add": "追加する",
+    "preset_items_unknown": "プリセット項目の詳細を取得できません。",
+    "preset_name_1": "ヴィーガン",
+    "preset_name_2": "イスラム（ハラール）",
+    "preset_name_3": "ユダヤ教（コーシャ）",
+    "preset_name_4": "仏教",
+    "preset_name_5": "ジャイナ教",
+    "preset_name_6": "妊娠中"
   },
   "home": {
     "image_pick_failed_with_message": "画像の選択に失敗しました: {message}",
