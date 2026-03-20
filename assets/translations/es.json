@@ -69,7 +69,29 @@
     "go_input": "Ir a entrada",
     "total_items": "Hay {count} ingredientes a evitar registrados.",
     "remove_success": "Se eliminó '{item}'.",
-    "remove_failed_with_message": "Error al eliminar: {message}"
+    "remove_failed_with_message": "Error al eliminar: {message}",
+    "preset_title": "Agregar rápido con presets",
+    "preset_desc": "Selecciona un preset para añadir ingredientes a evitar sugeridos al instante.",
+    "preset_loading": "Cargando presets...",
+    "preset_empty": "No hay presets disponibles.",
+    "preset_load_failed": "No se pudieron cargar los presets.",
+    "preset_selected": "Preset aplicado recientemente: {name}",
+    "preset_applied_with_count": "Se aplicó '{name}' (+{count})",
+    "preset_apply_failed": "Error al aplicar el preset: {message}",
+    "preset_add_button": "Agregar desde presets",
+    "preset_sheet_title": "Seleccionar preset",
+    "preset_sheet_desc": "Revisa los ingredientes del preset y añádelos a los candidatos.",
+    "preset_items_count": "{count} elementos",
+    "preset_confirm_title": "Agregar preset {name}",
+    "preset_confirm_desc": "¿Agregar estos ingredientes a evitar a los candidatos?",
+    "preset_confirm_add": "Agregar",
+    "preset_items_unknown": "No hay detalles disponibles del preset.",
+    "preset_name_1": "Vegano",
+    "preset_name_2": "Islam (Halal)",
+    "preset_name_3": "Judaísmo (Kosher)",
+    "preset_name_4": "Budismo",
+    "preset_name_5": "Jainismo",
+    "preset_name_6": "Embarazo"
   },
   "home": {
     "image_pick_failed_with_message": "Error al seleccionar la imagen: {message}",
@@ -193,6 +215,8 @@
     "analyzing": "La IA está analizando la imagen del menú...",
     "error_with_message": "Error de análisis: {message}",
     "title": "Resultado del análisis",
-    "no_items": "No hay elementos de menú analizados."
+    "no_items": "No hay elementos de menú analizados.",
+    "show_result_image": "Imagen resultado",
+    "result_image_not_found": "No se encontró imagen de resultado."
   }
 }

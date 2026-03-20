@@ -453,6 +453,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   void _showLanguageSelectionBottomSheet(BuildContext context) {
     final List<Map<String, String>> languages = AppConstants.supportedLanguages;
+    const selectableLanguageCodes = {'ko', 'en', 'es'};
 
     showModalBottomSheet(
       context: context,
@@ -499,69 +500,92 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           Divider(color: Colors.grey.shade300, height: 1),
                       itemBuilder: (context, index) {
                         final lang = languages[index];
-                        final isSelected =
-                            context.locale.languageCode == lang['code'];
+                        final code = lang['code']!;
+                        final isEnabled = selectableLanguageCodes.contains(
+                          code,
+                        );
+                        final isSelected = context.locale.languageCode == code;
 
                         return ListTile(
+                          enabled: isEnabled,
                           leading: Text(
                             lang['icon']!,
-                            style: const TextStyle(fontSize: 24),
+                            style: TextStyle(
+                              fontSize: 24,
+                              color: isEnabled
+                                  ? Colors.black87
+                                  : const Color(0xFF4F5A59),
+                            ),
                           ),
                           title: Text(
-                            tr('language.${lang['code']}'),
+                            tr('language.$code'),
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: isSelected
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                              color: isSelected ? Colors.teal : Colors.black87,
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
+                              color: !isEnabled
+                                  ? const Color(0xFF556160)
+                                  : (isSelected ? Colors.teal : Colors.black87),
                             ),
                           ),
-                          trailing: isSelected
+                          trailing: isSelected && isEnabled
                               ? const Icon(
                                   Icons.check_circle,
                                   color: Colors.teal,
                                 )
+                              : !isEnabled
+                              ? const Icon(
+                                  Icons.remove_circle_outline_rounded,
+                                  color: Color(0xFF667271),
+                                  size: 20,
+                                )
                               : null,
-                          onTap: () async {
-                            Navigator.pop(context);
-                            if (!isSelected) {
-                              try {
-                                await ref
-                                    .read(authRepositoryProvider)
-                                    .updateLanguage(lang['code']!);
+                          onTap: !isEnabled
+                              ? null
+                              : () async {
+                                  Navigator.pop(context);
+                                  if (!isSelected) {
+                                    try {
+                                      await ref
+                                          .read(authRepositoryProvider)
+                                          .updateLanguage(code);
 
-                                if (!mounted) return;
+                                      if (!mounted) return;
 
-                                await context.setLocale(Locale(lang['code']!));
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        tr(
-                                          'language_changed',
-                                          namedArgs: {
-                                            'lang': tr(
-                                              'language.${lang['code']}',
+                                      await context.setLocale(Locale(code));
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              tr(
+                                                'language_changed',
+                                                namedArgs: {
+                                                  'lang': tr('language.$code'),
+                                                },
+                                              ),
                                             ),
-                                          },
+                                          ),
+                                        );
+                                      }
+                                    } catch (e) {
+                                      if (!mounted) return;
+                                      final message = toUserMessage(
+                                        e,
+                                        fallback: tr(
+                                          'home.language_change_failed',
                                         ),
-                                      ),
-                                    ),
-                                  );
-                                }
-                              } catch (e) {
-                                if (!mounted) return;
-                                final message = toUserMessage(
-                                  e,
-                                  fallback: tr('home.language_change_failed'),
-                                );
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text(message)),
-                                );
-                              }
-                            }
-                          },
+                                      );
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(content: Text(message)),
+                                      );
+                                    }
+                                  }
+                                },
                         );
                       },
                     ),
@@ -604,16 +628,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           final initial =
                               user?.email.substring(0, 1).toUpperCase() ?? 'G';
 
-                            return Container(
-                              margin: const EdgeInsets.fromLTRB(2, 8, 2, 18),
-                              padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
-                              decoration: BoxDecoration(
+                          return Container(
+                            margin: const EdgeInsets.fromLTRB(2, 8, 2, 18),
+                            padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
+                            decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.82),
                               borderRadius: BorderRadius.circular(22),
-                              border: Border.all(color: Colors.white.withOpacity(0.98)),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: const Color(0xFF8DAEA8).withOpacity(0.2),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.98),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(
+                                    0xFF8DAEA8,
+                                  ).withOpacity(0.2),
                                   blurRadius: 14,
                                   offset: const Offset(0, 8),
                                 ),
@@ -627,13 +655,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                      color: const Color(0xFF1B9A8D).withOpacity(0.45),
+                                      color: const Color(
+                                        0xFF1B9A8D,
+                                      ).withOpacity(0.45),
                                       width: 2,
                                     ),
                                   ),
                                   child: CircleAvatar(
                                     radius: 26,
-                                      backgroundColor: Colors.white.withOpacity(0.98),
+                                    backgroundColor: Colors.white.withOpacity(
+                                      0.98,
+                                    ),
                                     child: Text(
                                       initial,
                                       style: const TextStyle(
@@ -647,7 +679,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     mainAxisSize: MainAxisSize.min,
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
@@ -703,7 +736,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           Navigator.of(dialogContext).pop();
                           Future.delayed(
                             const Duration(milliseconds: 60),
-                            () => _showLanguageSelectionBottomSheet(parentContext),
+                            () => _showLanguageSelectionBottomSheet(
+                              parentContext,
+                            ),
                           );
                         },
                       ),
@@ -734,11 +769,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           curve: Curves.easeOutCubic,
           reverseCurve: Curves.easeInCubic,
         );
-        final blurValue = Tween<double>(begin: 0, end: 5).transform(curved.value);
-        final dimValue = Tween<double>(begin: 0, end: 0.34).transform(curved.value);
-        final panelOffset = Tween<double>(begin: -0.03, end: 0).transform(
-          curved.value,
-        );
+        final blurValue = Tween<double>(
+          begin: 0,
+          end: 5,
+        ).transform(curved.value);
+        final dimValue = Tween<double>(
+          begin: 0,
+          end: 0.34,
+        ).transform(curved.value);
+        final panelOffset = Tween<double>(
+          begin: -0.03,
+          end: 0,
+        ).transform(curved.value);
 
         return Material(
           type: MaterialType.transparency,
@@ -900,6 +942,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Widget _buildHistoryCard(HistoryItem item) {
     final dateStr = DateFormat('yyMMdd HH:mm').format(item.createdAt);
+    const cardRadius = 26.0;
 
     return GestureDetector(
       onTap: () {
@@ -908,7 +951,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       child: Container(
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(26),
+          borderRadius: BorderRadius.circular(cardRadius),
           border: Border.all(color: Colors.white.withOpacity(0.9), width: 1.3),
           boxShadow: [
             BoxShadow(
@@ -983,9 +1026,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       vertical: 11.5,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.72),
+                      color: Colors.white.withValues(alpha: 0.52),
                       border: Border(
-                        top: BorderSide(color: Colors.white.withOpacity(0.78)),
+                        top: BorderSide(
+                          color: Colors.white.withValues(alpha: 0.74),
+                        ),
                       ),
                     ),
                     child: Column(
@@ -1237,7 +1282,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
               const SizedBox(width: 7),
               Text(
-                tr('home.history_header'),
+                context.tr('home.history_header'),
                 style: const TextStyle(
                   fontWeight: FontWeight.w800,
                   color: Color(0xFF1F3030),
@@ -1295,9 +1340,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 child: ClipRect(
                   child: BackdropFilter(
                     filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                    child: Container(
-                      color: Colors.black.withOpacity(0.34),
-                    ),
+                    child: Container(color: Colors.black.withOpacity(0.34)),
                   ),
                 ),
               ),
@@ -1318,11 +1361,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             final authState = ref.watch(authProvider);
                             final user = authState.value;
                             final initial =
-                                user?.email.substring(0, 1).toUpperCase() ?? 'G';
+                                user?.email.substring(0, 1).toUpperCase() ??
+                                'G';
 
                             return Container(
                               margin: const EdgeInsets.fromLTRB(2, 8, 2, 18),
-                              padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
+                              padding: const EdgeInsets.fromLTRB(
+                                16,
+                                18,
+                                16,
+                                16,
+                              ),
                               decoration: BoxDecoration(
                                 color: Colors.white.withOpacity(0.62),
                                 borderRadius: BorderRadius.circular(22),

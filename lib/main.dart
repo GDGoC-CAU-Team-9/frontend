@@ -33,6 +33,7 @@ class MyApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'SafePlate',
       theme: AppTheme.lightTheme,
+      debugShowCheckedModeBanner: false,
       localizationsDelegates: context.localizationDelegates,
       supportedLocales: context.supportedLocales,
       locale: context.locale,

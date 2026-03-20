@@ -37,6 +37,9 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen> {
   );
 
   void _showFullImage(BuildContext context, String imagePath) {
+    final isNetworkImage =
+        imagePath.startsWith('http://') || imagePath.startsWith('https://');
+
     showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -53,7 +56,7 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen> {
               minScale: 0.5,
               maxScale: 4.0,
               child: Center(
-                child: kIsWeb
+                child: (kIsWeb || isNetworkImage)
                     ? Image.network(imagePath, fit: BoxFit.contain)
                     : Image.file(File(imagePath), fit: BoxFit.contain),
               ),
@@ -164,7 +167,10 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen> {
     return sorted.take(limit).toList();
   }
 
-  Widget _buildRecommendationSummaryCard(List<MenuAnalysisResult> recommended) {
+  Widget _buildRecommendationSummaryCard(
+    List<MenuAnalysisResult> recommended,
+    List<String> resultImageUrls,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       clipBehavior: Clip.antiAlias,
@@ -239,6 +245,8 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen> {
                       ],
                     ),
                   ),
+                  const SizedBox(width: 6),
+                  _buildResultImageButton(resultImageUrls),
                 ],
               ),
               const SizedBox(height: 8),
@@ -298,6 +306,63 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildResultImageButton(List<String> resultImageUrls) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFF2E2C8), Color(0xFFE0C5A0)],
+        ),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: const Color(0xFFBE9A6D).withValues(alpha: 0.7),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF3B2415).withValues(alpha: 0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: TextButton.icon(
+        onPressed: () {
+          if (resultImageUrls.isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(tr('analysis_result.result_image_not_found')),
+              ),
+            );
+            return;
+          }
+          _showFullImage(context, resultImageUrls.first);
+        },
+        style: TextButton.styleFrom(
+          foregroundColor: const Color(0xFF4F311C),
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
+          minimumSize: const Size(0, 30),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(999),
+          ),
+        ),
+        icon: const Icon(Icons.image_search_rounded, size: 14),
+        label: Text(
+          tr('analysis_result.title'),
+          style: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w800,
+            fontFamily: 'Noto Serif KR',
+            fontFamilyFallback: ['Nanum Myeongjo', 'serif'],
+          ),
+        ),
       ),
     );
   }
@@ -622,7 +687,8 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen> {
                 ),
               ),
             ),
-            data: (results) {
+            data: (searchResult) {
+              final results = searchResult.items;
               final recommended = _pickTopRecommendations(results, limit: 7);
               final fallbackCount = results
                   .where((item) => item.isConservativeFallback)
@@ -774,7 +840,10 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen> {
                       SliverPadding(
                         padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
                         sliver: SliverToBoxAdapter(
-                          child: _buildRecommendationSummaryCard(recommended),
+                          child: _buildRecommendationSummaryCard(
+                            recommended,
+                            searchResult.resultImageUrls,
+                          ),
                         ),
                       ),
                     SliverPadding(

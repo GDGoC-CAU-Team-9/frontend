@@ -69,7 +69,29 @@
     "go_input": "前往输入",
     "total_items": "共登记 {count} 个忌口食材。",
     "remove_success": "已删除“{item}”。",
-    "remove_failed_with_message": "删除失败：{message}"
+    "remove_failed_with_message": "删除失败：{message}",
+    "preset_title": "通过预设快速添加",
+    "preset_desc": "选择一个预设即可立即添加推荐的忌口食材。",
+    "preset_loading": "正在加载预设...",
+    "preset_empty": "暂无可用预设。",
+    "preset_load_failed": "预设加载失败。",
+    "preset_selected": "最近应用的预设：{name}",
+    "preset_applied_with_count": "已应用“{name}”（+{count}）",
+    "preset_apply_failed": "应用预设失败：{message}",
+    "preset_add_button": "从预设添加",
+    "preset_sheet_title": "选择预设",
+    "preset_sheet_desc": "查看预设中的忌口食材并添加到候选列表。",
+    "preset_items_count": "{count}项",
+    "preset_confirm_title": "添加预设 {name}",
+    "preset_confirm_desc": "要将以下忌口食材添加到候选列表吗？",
+    "preset_confirm_add": "添加",
+    "preset_items_unknown": "无法获取该预设的条目详情。",
+    "preset_name_1": "纯素",
+    "preset_name_2": "伊斯兰（清真）",
+    "preset_name_3": "犹太教（洁食）",
+    "preset_name_4": "佛教",
+    "preset_name_5": "耆那教",
+    "preset_name_6": "孕期"
   },
   "home": {
     "image_pick_failed_with_message": "选择图片失败：{message}",
@@ -193,6 +215,8 @@
     "analyzing": "AI 正在分析菜单图片...",
     "error_with_message": "错误：{message}",
     "title": "分析结果",
-    "no_items": "没有可显示的分析菜单项。"
+    "no_items": "没有可显示的分析菜单项。",
+    "show_result_image": "结果图片",
+    "result_image_not_found": "未找到结果图片。"
   }
 }

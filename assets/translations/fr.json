@@ -69,7 +69,29 @@
     "go_input": "Aller à la saisie",
     "total_items": "Au total, {count} ingrédients à éviter sont enregistrés.",
     "remove_success": "'{item}' a été supprimé.",
-    "remove_failed_with_message": "Échec de la suppression : {message}"
+    "remove_failed_with_message": "Échec de la suppression : {message}",
+    "preset_title": "Ajouter rapidement avec des presets",
+    "preset_desc": "Sélectionnez un preset pour ajouter immédiatement des ingrédients à éviter suggérés.",
+    "preset_loading": "Chargement des presets...",
+    "preset_empty": "Aucun preset disponible.",
+    "preset_load_failed": "Impossible de charger les presets.",
+    "preset_selected": "Preset appliqué récemment : {name}",
+    "preset_applied_with_count": "Preset '{name}' appliqué (+{count})",
+    "preset_apply_failed": "Échec de l'application du preset : {message}",
+    "preset_add_button": "Ajouter depuis les presets",
+    "preset_sheet_title": "Choisir un preset",
+    "preset_sheet_desc": "Consultez les ingrédients du preset et ajoutez-les aux candidats.",
+    "preset_items_count": "{count} éléments",
+    "preset_confirm_title": "Ajouter le preset {name}",
+    "preset_confirm_desc": "Ajouter les ingrédients suivants aux candidats ?",
+    "preset_confirm_add": "Ajouter",
+    "preset_items_unknown": "Les détails du preset ne sont pas disponibles.",
+    "preset_name_1": "Vegan",
+    "preset_name_2": "Islam (Halal)",
+    "preset_name_3": "Judaïsme (Casher)",
+    "preset_name_4": "Bouddhisme",
+    "preset_name_5": "Jaïnisme",
+    "preset_name_6": "Grossesse"
   },
   "home": {
     "image_pick_failed_with_message": "Échec de la sélection de l'image : {message}",
@@ -193,6 +215,8 @@
     "analyzing": "L'IA analyse l'image du menu...",
     "error_with_message": "Erreur : {message}",
     "title": "Résultat d'analyse",
-    "no_items": "Aucun élément de menu analysé."
+    "no_items": "Aucun élément de menu analysé.",
+    "show_result_image": "Image résultat",
+    "result_image_not_found": "Aucune image résultat trouvée."
   }
 }

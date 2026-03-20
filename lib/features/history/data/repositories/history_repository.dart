@@ -13,6 +13,7 @@ final historyRepositoryProvider = Provider<HistoryRepository>((ref) {
 class HistoryItem {
   final int id;
   final List<String> imageUrls;
+  final List<String> resultImageUrls;
   final List<MenuAnalysisResult> items;
   final MenuAnalysisResult? best;
   final DateTime createdAt;
@@ -20,13 +21,27 @@ class HistoryItem {
   HistoryItem({
     required this.id,
     required this.imageUrls,
+    required this.resultImageUrls,
     required this.items,
     this.best,
     required this.createdAt,
   });
 
+  List<String> get previewImageUrls =>
+      resultImageUrls.isNotEmpty ? resultImageUrls : imageUrls;
+
+  static List<String> _parseStringList(dynamic raw) {
+    if (raw is List) {
+      return raw.map((e) => e.toString()).toList();
+    }
+    return const [];
+  }
+
   factory HistoryItem.fromJson(Map<String, dynamic> json) {
-    final List<dynamic> imageUrlsJson = json['imageUrls'] ?? [];
+    final imageUrls = _parseStringList(json['imageUrls'] ?? json['image_urls']);
+    final resultImageUrls = _parseStringList(
+      json['resultImageUrls'] ?? json['result_image_urls'],
+    );
     final searchResult = json['searchResult'] as Map<String, dynamic>?;
 
     List<MenuAnalysisResult> items = [];
@@ -45,7 +60,8 @@ class HistoryItem {
 
     return HistoryItem(
       id: json['id'] ?? 0,
-      imageUrls: imageUrlsJson.map((e) => e.toString()).toList(),
+      imageUrls: imageUrls,
+      resultImageUrls: resultImageUrls,
       items: items,
       best: best,
       createdAt: json['createdAt'] != null

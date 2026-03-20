@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../../../../core/utils/error_utils.dart';
 import '../providers/menu_provider.dart';
 import '../../../../core/theme/app_design.dart';
 
@@ -69,12 +70,32 @@ class _AnalysisLoadingScreenState extends ConsumerState<AnalysisLoadingScreen>
   @override
   Widget build(BuildContext context) {
     final analysisState = ref.watch(menuAnalysisProvider);
-    final errorMessage = analysisState.whenOrNull(
-      error: (error, _) => error.toString(),
-    );
+    final rawError = analysisState.whenOrNull(error: (error, _) => error);
+    final errorMessage = rawError == null
+        ? tr('common.unknown_error')
+        : _friendlyErrorMessage(rawError);
 
-    // Listen for completion
+    final closeIcon = analysisState.hasError
+        ? Icons.arrow_back_ios_new_rounded
+        : Icons.close;
+
+    void closeAction() {
+      if (context.canPop()) {
+        context.pop();
+      } else {
+        context.go('/home');
+      }
+    }
+
     ref.listen(menuAnalysisProvider, (previous, next) {
+      if (previous != null && previous.hasError && next.isLoading) {
+        setState(() {
+          _step1 = false;
+          _step2 = false;
+          _step3 = false;
+        });
+        _startStepAnimations();
+      }
       next.whenData((results) {
         final router = GoRouter.of(context);
         // Add a small delay to let the last animation finish visually
@@ -106,10 +127,7 @@ class _AnalysisLoadingScreenState extends ConsumerState<AnalysisLoadingScreen>
           // 2. Center Content
           Center(
             child: analysisState.hasError
-                ? _buildErrorCard(
-                    context,
-                    errorMessage ?? tr('common.unknown_error'),
-                  )
+                ? _buildErrorCard(context, errorMessage)
                 : Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -212,14 +230,7 @@ class _AnalysisLoadingScreenState extends ConsumerState<AnalysisLoadingScreen>
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: GestureDetector(
-                  onTap: () {
-                    if (context.canPop()) {
-                      context.pop();
-                    } else {
-                      // Fallback if can't pop (e.g. opened directly, though unlikely here)
-                      context.go('/home');
-                    }
-                  },
+                  onTap: closeAction,
                   child: ClipOval(
                     child: BackdropFilter(
                       filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
@@ -229,11 +240,7 @@ class _AnalysisLoadingScreenState extends ConsumerState<AnalysisLoadingScreen>
                           color: Colors.white.withOpacity(0.5),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
-                          Icons.close,
-                          color: Colors.black54,
-                          size: 24,
-                        ),
+                        child: Icon(closeIcon, color: Colors.black54, size: 24),
                       ),
                     ),
                   ),
@@ -246,57 +253,170 @@ class _AnalysisLoadingScreenState extends ConsumerState<AnalysisLoadingScreen>
     );
   }
 
+  String _friendlyErrorMessage(Object error) {
+    final fallback = tr('common.unknown_error');
+    final extracted = toUserMessage(error, fallback: fallback);
+    if (extracted != fallback) return _normalizeErrorText(extracted, fallback);
+    return _normalizeErrorText(error.toString(), fallback);
+  }
+
+  String _normalizeErrorText(String raw, String fallback) {
+    var text = raw.trim();
+    text = text.replaceFirst(
+      RegExp(r'^Exception:\s*', caseSensitive: false),
+      '',
+    );
+    text = text.replaceFirst(
+      RegExp(r'^DioException(\s*\[[^\]]+\])?:\s*', caseSensitive: false),
+      '',
+    );
+    if (text.isEmpty || text.toLowerCase() == 'exception') return fallback;
+    return text;
+  }
+
   Widget _buildErrorCard(BuildContext context, String message) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(28),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
         child: Container(
-          width: MediaQuery.of(context).size.width * 0.85,
-          padding: const EdgeInsets.all(24),
-          decoration: AppDesign.glassDecoration,
+          width: MediaQuery.of(context).size.width * 0.88,
+          padding: const EdgeInsets.fromLTRB(22, 22, 22, 20),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFFF5FAF9), Color(0xFFEAF4F1)],
+            ),
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(color: Colors.white.withOpacity(0.95)),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF486965).withOpacity(0.22),
+                blurRadius: 22,
+                offset: const Offset(0, 12),
+              ),
+            ],
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.error_outline,
-                color: Colors.redAccent,
-                size: 42,
+              Container(
+                width: 74,
+                height: 74,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFFEB5450).withOpacity(0.12),
+                  border: Border.all(
+                    color: const Color(0xFFEB5450).withOpacity(0.25),
+                    width: 1.2,
+                  ),
+                ),
+                child: const Icon(
+                  Icons.error_outline_rounded,
+                  color: Color(0xFFEB5450),
+                  size: 46,
+                ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               Text(
                 tr('analysis_loading.failed_title'),
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  fontSize: 28,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF1E2E2D),
                 ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 13, color: Colors.black54),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
+              const SizedBox(height: 12),
+              Container(
                 width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    if (context.canPop()) {
-                      context.pop();
-                    } else {
-                      context.go('/home');
-                    }
-                  },
-                  icon: const Icon(Icons.arrow_back),
-                  label: Text(tr('analysis_loading.back_to_previous')),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal,
-                    foregroundColor: Colors.white,
+                padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.58),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFFE1ECE9)),
+                ),
+                child: Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Color(0xFF5A6A68),
+                    height: 1.35,
                   ),
                 ),
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        ref
+                            .read(menuAnalysisProvider.notifier)
+                            .analyzeMenu(
+                              widget.imageFile,
+                              teamMemberId: widget.teamMemberId,
+                            );
+                      },
+                      icon: const Icon(Icons.refresh_rounded, size: 18),
+                      label: Text(tr('common.retry')),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF23756E),
+                        side: BorderSide(
+                          color: const Color(0xFF23756E).withOpacity(0.28),
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [Color(0xFF17A89B), Color(0xFF0D847B)],
+                        ),
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF0D847B).withOpacity(0.28),
+                            blurRadius: 10,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                      child: SizedBox(
+                        height: 44,
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            if (context.canPop()) {
+                              context.pop();
+                            } else {
+                              context.go('/home');
+                            }
+                          },
+                          icon: const Icon(Icons.arrow_back_rounded, size: 18),
+                          label: Text(tr('analysis_loading.back_to_previous')),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            foregroundColor: Colors.white,
+                            shadowColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

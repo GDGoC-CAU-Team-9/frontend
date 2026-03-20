@@ -7,6 +7,14 @@ final myAvoidItemsProvider = FutureProvider<List<String>>((ref) async {
   return repository.getMyAvoidItems();
 });
 
+/// 기피재료 프리셋 목록 조회
+final avoidPresetListProvider = FutureProvider<List<AvoidPresetSummary>>((
+  ref,
+) async {
+  final repository = ref.watch(avoidItemRepositoryProvider);
+  return repository.getAvoidPresets();
+});
+
 /// 기피재료 입력/추출/저장 상태 관리
 class AvoidItemNotifier extends StateNotifier<AvoidItemState> {
   final AvoidItemRepository _repository;
@@ -78,34 +86,68 @@ class AvoidItemNotifier extends StateNotifier<AvoidItemState> {
   void reset() {
     state = AvoidItemState();
   }
+
+  /// 프리셋 아이템을 추출 목록에 병합
+  Future<int> applyPreset(AvoidPresetSummary preset) async {
+    state = state.copyWith(isPresetLoading: true);
+    try {
+      List<String> presetItems = preset.items;
+      if (presetItems.isEmpty) {
+        final detail = await _repository.getAvoidPresetById(preset.id);
+        presetItems = detail.avoidItems;
+      }
+
+      final beforeCount = state.extractedItems.length;
+      final merged = <String>{...state.extractedItems, ...presetItems}.toList();
+      final addedCount = merged.length - beforeCount;
+
+      state = state.copyWith(
+        isPresetLoading: false,
+        extractedItems: merged,
+        selectedPresetName: preset.name,
+      );
+      return addedCount;
+    } catch (e) {
+      state = state.copyWith(isPresetLoading: false);
+      rethrow;
+    }
+  }
 }
 
 class AvoidItemState {
   final bool isLoading;
+  final bool isPresetLoading;
   final List<String> extractedItems;
   final String confirmQuestion;
+  final String? selectedPresetName;
   final String? error;
   final bool isSaved;
 
   AvoidItemState({
     this.isLoading = false,
+    this.isPresetLoading = false,
     this.extractedItems = const [],
     this.confirmQuestion = '',
+    this.selectedPresetName,
     this.error,
     this.isSaved = false,
   });
 
   AvoidItemState copyWith({
     bool? isLoading,
+    bool? isPresetLoading,
     List<String>? extractedItems,
     String? confirmQuestion,
+    String? selectedPresetName,
     String? error,
     bool? isSaved,
   }) {
     return AvoidItemState(
       isLoading: isLoading ?? this.isLoading,
+      isPresetLoading: isPresetLoading ?? this.isPresetLoading,
       extractedItems: extractedItems ?? this.extractedItems,
       confirmQuestion: confirmQuestion ?? this.confirmQuestion,
+      selectedPresetName: selectedPresetName ?? this.selectedPresetName,
       error: error,
       isSaved: isSaved ?? this.isSaved,
     );

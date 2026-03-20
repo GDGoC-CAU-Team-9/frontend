@@ -8,6 +8,106 @@ final avoidItemRepositoryProvider = Provider<AvoidItemRepository>((ref) {
   return AvoidItemRepository(dio);
 });
 
+class AvoidPresetSummary {
+  final int id;
+  final String name;
+  final String description;
+  final int? avoidItemCount;
+  final List<String> items;
+
+  const AvoidPresetSummary({
+    required this.id,
+    required this.name,
+    this.description = '',
+    this.avoidItemCount,
+    this.items = const [],
+  });
+
+  static int _parseInt(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value?.toString() ?? '') ?? 0;
+  }
+
+  static List<String> _parseStringList(dynamic raw) {
+    if (raw is List) {
+      return raw.map((e) => e.toString()).toList();
+    }
+    return const [];
+  }
+
+  factory AvoidPresetSummary.fromJson(Map<String, dynamic> json) {
+    final items = _parseStringList(
+      json['items'] ??
+          json['avoidItems'] ??
+          json['avoid_items'] ??
+          json['presetItems'],
+    );
+    final parsedCount = json['avoidItemCount'] != null
+        ? _parseInt(json['avoidItemCount'])
+        : (json['itemCount'] != null ? _parseInt(json['itemCount']) : 0);
+
+    return AvoidPresetSummary(
+      id: _parseInt(json['presetId'] ?? json['id']),
+      name: (json['presetName'] ?? json['name'] ?? json['title'] ?? '')
+          .toString()
+          .trim(),
+      description: (json['description'] ?? json['summary'] ?? '')
+          .toString()
+          .trim(),
+      avoidItemCount: parsedCount > 0
+          ? parsedCount
+          : (items.isNotEmpty ? items.length : null),
+      items: items,
+    );
+  }
+}
+
+class AvoidPresetDetail {
+  final int id;
+  final String name;
+  final String description;
+  final List<String> avoidItems;
+
+  const AvoidPresetDetail({
+    required this.id,
+    required this.name,
+    required this.avoidItems,
+    this.description = '',
+  });
+
+  static int _parseInt(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value?.toString() ?? '') ?? 0;
+  }
+
+  static List<String> _parseStringList(dynamic raw) {
+    if (raw is List) {
+      return raw.map((e) => e.toString()).toList();
+    }
+    return const [];
+  }
+
+  factory AvoidPresetDetail.fromJson(Map<String, dynamic> json) {
+    return AvoidPresetDetail(
+      id: _parseInt(json['presetId'] ?? json['id']),
+      name: (json['presetName'] ?? json['name'] ?? json['title'] ?? '')
+          .toString()
+          .trim(),
+      description: (json['description'] ?? json['summary'] ?? '')
+          .toString()
+          .trim(),
+      avoidItems: _parseStringList(
+        json['avoidItems'] ??
+            json['avoid_items'] ??
+            json['items'] ??
+            json['presetItems'],
+      ),
+    );
+  }
+}
+
 class AvoidItemRepository {
   final Dio _dio;
 
@@ -103,6 +203,86 @@ class AvoidItemRepository {
       return items;
     } catch (e) {
       log('saveAvoidItems error: $e');
+      rethrow;
+    }
+  }
+
+  /// GET /avoid-presets → 기피재료 프리셋 목록 조회
+  Future<List<AvoidPresetSummary>> getAvoidPresets() async {
+    try {
+      final response = await _dio.get('/avoid-presets');
+      _checkResponse(response);
+
+      final dynamic result = response.data is Map
+          ? (response.data['result'] ?? response.data)
+          : response.data;
+
+      List<dynamic> presetsJson = const [];
+      if (result is List) {
+        presetsJson = result;
+      } else if (result is Map) {
+        final listLike =
+            result['avoidPresets'] ??
+            result['presets'] ??
+            result['items'] ??
+            result['list'];
+        if (listLike is List) {
+          presetsJson = listLike;
+        }
+      }
+
+      return presetsJson
+          .whereType<Map>()
+          .map(
+            (json) =>
+                AvoidPresetSummary.fromJson(Map<String, dynamic>.from(json)),
+          )
+          .where((preset) => preset.id > 0 || preset.name.isNotEmpty)
+          .toList();
+    } on DioException catch (e) {
+      // Backend rollout 이전에는 404가 정상일 수 있으므로 빈 목록으로 처리.
+      if (e.response?.statusCode == 404) {
+        log('getAvoidPresets not deployed yet: ${e.response?.statusCode}');
+        return [];
+      }
+      log('getAvoidPresets error: $e');
+      rethrow;
+    } catch (e) {
+      log('getAvoidPresets error: $e');
+      rethrow;
+    }
+  }
+
+  /// GET /avoid-presets/{presetId} → 단일 프리셋 상세 조회
+  Future<AvoidPresetDetail> getAvoidPresetById(int presetId) async {
+    try {
+      final response = await _dio.get('/avoid-presets/$presetId');
+      _checkResponse(response);
+
+      final dynamic result = response.data is Map
+          ? (response.data['result'] ?? response.data)
+          : response.data;
+
+      Map<String, dynamic>? presetJson;
+      if (result is Map) {
+        final nested =
+            result['avoidPreset'] ?? result['preset'] ?? result['detail'];
+        if (nested is Map) {
+          presetJson = Map<String, dynamic>.from(nested);
+        } else {
+          presetJson = Map<String, dynamic>.from(result);
+        }
+      }
+
+      if (presetJson == null) {
+        throw Exception(
+          'Unexpected response format for getAvoidPresetById: ${response.data}',
+        );
+      }
+
+      return AvoidPresetDetail.fromJson(presetJson);
+    } catch (e) {
+      log('getAvoidPresetById error: $e');
       rethrow;
     }
   }
