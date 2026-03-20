@@ -918,6 +918,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Widget _buildHistoryCard(HistoryItem item) {
     final dateStr = DateFormat('yyMMdd HH:mm').format(item.createdAt);
+    const cardRadius = 26.0;
 
     return GestureDetector(
       onTap: () {
@@ -926,7 +927,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       child: Container(
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(26),
+          borderRadius: BorderRadius.circular(cardRadius),
           border: Border.all(color: Colors.white.withOpacity(0.9), width: 1.3),
           boxShadow: [
             BoxShadow(
@@ -1001,9 +1002,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       vertical: 11.5,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.72),
+                      color: Colors.white.withValues(alpha: 0.52),
                       border: Border(
-                        top: BorderSide(color: Colors.white.withOpacity(0.78)),
+                        top: BorderSide(
+                          color: Colors.white.withValues(alpha: 0.74),
+                        ),
                       ),
                     ),
                     child: Column(
