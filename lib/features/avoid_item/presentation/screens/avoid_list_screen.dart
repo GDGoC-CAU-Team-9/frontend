@@ -53,6 +53,13 @@ class AvoidListScreen extends ConsumerWidget {
               color: Colors.white.withOpacity(0.65),
               shape: BoxShape.circle,
               border: Border.all(color: Colors.white.withOpacity(0.9)),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF7FA7A0).withOpacity(0.18),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: IconButton(
               icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),

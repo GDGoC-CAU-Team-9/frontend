@@ -4,19 +4,18 @@ import '../../data/repositories/menu_repository.dart';
 
 // State provider to hold the analysis results
 final menuAnalysisProvider =
-    StateNotifierProvider<
-      MenuAnalysisNotifier,
-      AsyncValue<List<MenuAnalysisResult>>
-    >((ref) {
+    StateNotifierProvider<MenuAnalysisNotifier, AsyncValue<SearchResult>>((
+      ref,
+    ) {
       final repository = ref.watch(menuRepositoryProvider);
       return MenuAnalysisNotifier(repository);
     });
 
-class MenuAnalysisNotifier
-    extends StateNotifier<AsyncValue<List<MenuAnalysisResult>>> {
+class MenuAnalysisNotifier extends StateNotifier<AsyncValue<SearchResult>> {
   final MenuRepository _repository;
 
-  MenuAnalysisNotifier(this._repository) : super(const AsyncValue.data([]));
+  MenuAnalysisNotifier(this._repository)
+    : super(AsyncValue.data(SearchResult(items: [])));
 
   Future<void> analyzeMenu(XFile file, {int? teamMemberId}) async {
     state = const AsyncValue.loading();

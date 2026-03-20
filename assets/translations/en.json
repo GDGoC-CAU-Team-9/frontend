@@ -69,7 +69,15 @@
     "go_input": "Go to Input",
     "total_items": "Total {count} avoid items are registered.",
     "remove_success": "'{item}' was removed.",
-    "remove_failed_with_message": "Remove failed: {message}"
+    "remove_failed_with_message": "Remove failed: {message}",
+    "preset_title": "Add Quickly with Presets",
+    "preset_desc": "Pick a preset to add suggested avoid items instantly.",
+    "preset_loading": "Loading presets...",
+    "preset_empty": "No presets are available.",
+    "preset_load_failed": "Failed to load presets.",
+    "preset_selected": "Recently applied preset: {name}",
+    "preset_applied_with_count": "Applied '{name}' (+{count})",
+    "preset_apply_failed": "Failed to apply preset: {message}"
   },
   "home": {
     "image_pick_failed_with_message": "Failed to pick image: {message}",
@@ -193,6 +201,8 @@
     "analyzing": "AI is analyzing the menu image...",
     "error_with_message": "Error: {message}",
     "title": "Analysis Result",
-    "no_items": "No analyzed menu items."
+    "no_items": "No analyzed menu items.",
+    "show_result_image": "Result Image",
+    "result_image_not_found": "No result image found."
   }
 }

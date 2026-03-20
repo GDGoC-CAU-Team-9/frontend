@@ -604,16 +604,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           final initial =
                               user?.email.substring(0, 1).toUpperCase() ?? 'G';
 
-                            return Container(
-                              margin: const EdgeInsets.fromLTRB(2, 8, 2, 18),
-                              padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
-                              decoration: BoxDecoration(
+                          return Container(
+                            margin: const EdgeInsets.fromLTRB(2, 8, 2, 18),
+                            padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
+                            decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.82),
                               borderRadius: BorderRadius.circular(22),
-                              border: Border.all(color: Colors.white.withOpacity(0.98)),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: const Color(0xFF8DAEA8).withOpacity(0.2),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.98),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(
+                                    0xFF8DAEA8,
+                                  ).withOpacity(0.2),
                                   blurRadius: 14,
                                   offset: const Offset(0, 8),
                                 ),
@@ -627,13 +631,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                      color: const Color(0xFF1B9A8D).withOpacity(0.45),
+                                      color: const Color(
+                                        0xFF1B9A8D,
+                                      ).withOpacity(0.45),
                                       width: 2,
                                     ),
                                   ),
                                   child: CircleAvatar(
                                     radius: 26,
-                                      backgroundColor: Colors.white.withOpacity(0.98),
+                                    backgroundColor: Colors.white.withOpacity(
+                                      0.98,
+                                    ),
                                     child: Text(
                                       initial,
                                       style: const TextStyle(
@@ -647,7 +655,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     mainAxisSize: MainAxisSize.min,
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
@@ -703,7 +712,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           Navigator.of(dialogContext).pop();
                           Future.delayed(
                             const Duration(milliseconds: 60),
-                            () => _showLanguageSelectionBottomSheet(parentContext),
+                            () => _showLanguageSelectionBottomSheet(
+                              parentContext,
+                            ),
                           );
                         },
                       ),
@@ -734,11 +745,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           curve: Curves.easeOutCubic,
           reverseCurve: Curves.easeInCubic,
         );
-        final blurValue = Tween<double>(begin: 0, end: 5).transform(curved.value);
-        final dimValue = Tween<double>(begin: 0, end: 0.34).transform(curved.value);
-        final panelOffset = Tween<double>(begin: -0.03, end: 0).transform(
-          curved.value,
-        );
+        final blurValue = Tween<double>(
+          begin: 0,
+          end: 5,
+        ).transform(curved.value);
+        final dimValue = Tween<double>(
+          begin: 0,
+          end: 0.34,
+        ).transform(curved.value);
+        final panelOffset = Tween<double>(
+          begin: -0.03,
+          end: 0,
+        ).transform(curved.value);
 
         return Material(
           type: MaterialType.transparency,
@@ -1295,9 +1313,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 child: ClipRect(
                   child: BackdropFilter(
                     filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                    child: Container(
-                      color: Colors.black.withOpacity(0.34),
-                    ),
+                    child: Container(color: Colors.black.withOpacity(0.34)),
                   ),
                 ),
               ),
@@ -1318,11 +1334,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             final authState = ref.watch(authProvider);
                             final user = authState.value;
                             final initial =
-                                user?.email.substring(0, 1).toUpperCase() ?? 'G';
+                                user?.email.substring(0, 1).toUpperCase() ??
+                                'G';
 
                             return Container(
                               margin: const EdgeInsets.fromLTRB(2, 8, 2, 18),
-                              padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
+                              padding: const EdgeInsets.fromLTRB(
+                                16,
+                                18,
+                                16,
+                                16,
+                              ),
                               decoration: BoxDecoration(
                                 color: Colors.white.withOpacity(0.62),
                                 borderRadius: BorderRadius.circular(22),

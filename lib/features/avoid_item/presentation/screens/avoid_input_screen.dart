@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../data/repositories/avoid_item_repository.dart';
 import '../providers/avoid_item_provider.dart';
 
 class AvoidInputScreen extends ConsumerStatefulWidget {
@@ -45,6 +46,7 @@ class _AvoidInputScreenState extends ConsumerState<AvoidInputScreen>
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(avoidItemNotifierProvider);
+    final topInset = MediaQuery.of(context).padding.top + kToolbarHeight + 12;
 
     ref.listen<AvoidItemState>(avoidItemNotifierProvider, (prev, next) {
       if (next.extractedItems.isNotEmpty &&
@@ -88,6 +90,10 @@ class _AvoidInputScreenState extends ConsumerState<AvoidInputScreen>
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
+        shadowColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        forceMaterialTransparency: true,
         centerTitle: true,
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
@@ -96,6 +102,13 @@ class _AvoidInputScreenState extends ConsumerState<AvoidInputScreen>
               color: Colors.white.withOpacity(0.65),
               shape: BoxShape.circle,
               border: Border.all(color: Colors.white.withOpacity(0.9)),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF7FA7A0).withOpacity(0.18),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: IconButton(
               icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
@@ -115,13 +128,14 @@ class _AvoidInputScreenState extends ConsumerState<AvoidInputScreen>
           ),
           IgnorePointer(child: _buildBackgroundInputIcon()),
           SafeArea(
+            top: false,
             child: GestureDetector(
               onTap: () => FocusScope.of(context).unfocus(),
               child: CustomScrollView(
                 slivers: [
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+                      padding: EdgeInsets.fromLTRB(16, topInset, 16, 20),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -197,6 +211,8 @@ class _AvoidInputScreenState extends ConsumerState<AvoidInputScreen>
                               ],
                             ),
                           ),
+                          const SizedBox(height: 14),
+                          _buildPresetCard(state),
                           const SizedBox(height: 14),
                           Container(
                             decoration: BoxDecoration(
@@ -483,6 +499,151 @@ class _AvoidInputScreenState extends ConsumerState<AvoidInputScreen>
     );
   }
 
+  Widget _buildPresetCard(AvoidItemState state) {
+    final presetsAsync = ref.watch(avoidPresetListProvider);
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.62),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.white.withOpacity(0.9)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF8DAEA8).withOpacity(0.14),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.bookmark_add_rounded,
+                size: 20,
+                color: Color(0xFF0F8E83),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  tr('avoid.preset_title'),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF213434),
+                  ),
+                ),
+              ),
+              if (state.isPresetLoading)
+                const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.2,
+                    color: Color(0xFF0F8E83),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            tr('avoid.preset_desc'),
+            style: const TextStyle(fontSize: 12, color: Color(0xFF5F7070)),
+          ),
+          const SizedBox(height: 10),
+          presetsAsync.when(
+            loading: () => Text(
+              tr('avoid.preset_loading'),
+              style: const TextStyle(fontSize: 13, color: Color(0xFF5F7070)),
+            ),
+            error: (err, stack) => Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  tr('avoid.preset_load_failed'),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Color(0xFFD94B3A),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                TextButton(
+                  onPressed: () => ref.invalidate(avoidPresetListProvider),
+                  child: Text(tr('common.retry')),
+                ),
+              ],
+            ),
+            data: (presets) {
+              if (presets.isEmpty) {
+                return Text(
+                  tr('avoid.preset_empty'),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Color(0xFF5F7070),
+                  ),
+                );
+              }
+
+              return Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: presets
+                    .map((preset) => _buildPresetChip(preset, state))
+                    .toList(),
+              );
+            },
+          ),
+          if ((state.selectedPresetName ?? '').isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text(
+              tr(
+                'avoid.preset_selected',
+                namedArgs: {'name': state.selectedPresetName!},
+              ),
+              style: const TextStyle(
+                fontSize: 12,
+                color: Color(0xFF0F7E75),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPresetChip(AvoidPresetSummary preset, AvoidItemState state) {
+    final countLabel = preset.avoidItemCount != null
+        ? ' (${preset.avoidItemCount})'
+        : '';
+
+    return ActionChip(
+      onPressed: state.isPresetLoading
+          ? null
+          : () => _handleApplyPreset(preset),
+      avatar: const Icon(
+        Icons.auto_awesome_rounded,
+        size: 16,
+        color: Color(0xFF0F8E83),
+      ),
+      label: Text(
+        '${preset.name}$countLabel',
+        style: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w700,
+          color: Color(0xFF0F7E75),
+        ),
+      ),
+      labelPadding: const EdgeInsets.only(right: 4),
+      backgroundColor: Colors.white.withOpacity(0.72),
+      side: BorderSide(color: const Color(0xFF0F8E83).withOpacity(0.25)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+    );
+  }
+
   Widget _buildChip(String item) {
     return GestureDetector(
       onTap: () =>
@@ -551,5 +712,47 @@ class _AvoidInputScreenState extends ConsumerState<AvoidInputScreen>
 
   void _handleSave() {
     ref.read(avoidItemNotifierProvider.notifier).saveExtractedItems();
+  }
+
+  Future<void> _handleApplyPreset(AvoidPresetSummary preset) async {
+    try {
+      final addedCount = await ref
+          .read(avoidItemNotifierProvider.notifier)
+          .applyPreset(preset.id);
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            tr(
+              'avoid.preset_applied_with_count',
+              namedArgs: {'name': preset.name, 'count': '$addedCount'},
+            ),
+          ),
+          backgroundColor: const Color(0xFF0F8E83),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            tr(
+              'avoid.preset_apply_failed',
+              namedArgs: {'message': e.toString()},
+            ),
+          ),
+          backgroundColor: const Color(0xFFD94B3A),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+    }
   }
 }

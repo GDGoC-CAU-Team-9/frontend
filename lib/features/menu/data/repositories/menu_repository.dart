@@ -70,21 +70,40 @@ class MenuAnalysisResult {
 class SearchResult {
   final List<MenuAnalysisResult> items;
   final MenuAnalysisResult? best;
+  final List<String> resultImageUrls;
 
-  SearchResult({required this.items, this.best});
+  SearchResult({
+    required this.items,
+    this.best,
+    this.resultImageUrls = const [],
+  });
+
+  static List<String> _parseStringList(dynamic raw) {
+    if (raw is List) {
+      return raw.map((e) => e.toString()).toList();
+    }
+    return const [];
+  }
 
   factory SearchResult.fromJson(Map<String, dynamic> json) {
     final List<dynamic> itemsJson = json['items'] ?? [];
     final items = itemsJson
         .map((item) => MenuAnalysisResult.fromJson(item))
         .toList();
+    final resultImageUrls = _parseStringList(
+      json['result_image_urls'] ?? json['resultImageUrls'],
+    );
 
     MenuAnalysisResult? best;
     if (json['best'] != null) {
       best = MenuAnalysisResult.fromJson(json['best']);
     }
 
-    return SearchResult(items: items, best: best);
+    return SearchResult(
+      items: items,
+      best: best,
+      resultImageUrls: resultImageUrls,
+    );
   }
 }
 
@@ -95,10 +114,7 @@ class MenuRepository {
 
   /// Upload image to S3 and analyze via backend (POST /restaurant/search)
   /// The backend automatically fetches user's avoid items and saves history.
-  Future<List<MenuAnalysisResult>> uploadMenuImage(
-    XFile file, {
-    int? teamMemberId,
-  }) async {
+  Future<SearchResult> uploadMenuImage(XFile file, {int? teamMemberId}) async {
     try {
       // 1. Normalize Image (Resize & Convert to JPEG)
       developer.log(
@@ -208,7 +224,7 @@ class MenuRepository {
         );
 
         final searchResult = SearchResult.fromJson(resultData);
-        return searchResult.items;
+        return searchResult;
       } else {
         throw Exception(
           'Failed to analyze menu: ${analysisResponse.data['message'] ?? analysisResponse.statusCode}',

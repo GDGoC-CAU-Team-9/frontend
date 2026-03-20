@@ -69,7 +69,15 @@
     "go_input": "入力画面へ",
     "total_items": "合計 {count} 件の忌避食材が登録されています。",
     "remove_success": "'{item}' を削除しました。",
-    "remove_failed_with_message": "削除に失敗しました: {message}"
+    "remove_failed_with_message": "削除に失敗しました: {message}",
+    "preset_title": "プリセットで素早く追加",
+    "preset_desc": "プリセットを選択すると、推奨される忌避食材をすぐに追加できます。",
+    "preset_loading": "プリセットを読み込み中...",
+    "preset_empty": "利用可能なプリセットがありません。",
+    "preset_load_failed": "プリセットの読み込みに失敗しました。",
+    "preset_selected": "最近適用したプリセット: {name}",
+    "preset_applied_with_count": "'{name}' を適用しました (+{count})",
+    "preset_apply_failed": "プリセットの適用に失敗しました: {message}"
   },
   "home": {
     "image_pick_failed_with_message": "画像の選択に失敗しました: {message}",
@@ -193,6 +201,8 @@
     "analyzing": "AI がメニュー画像を分析しています...",
     "error_with_message": "エラー: {message}",
     "title": "分析結果",
-    "no_items": "分析されたメニュー項目がありません。"
+    "no_items": "分析されたメニュー項目がありません。",
+    "show_result_image": "結果画像",
+    "result_image_not_found": "結果画像が見つかりません。"
   }
 }

@@ -145,7 +145,11 @@ class HistoryDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRecommendationCard(List<MenuAnalysisResult> recommended) {
+  Widget _buildRecommendationCard(
+    BuildContext context,
+    List<MenuAnalysisResult> recommended,
+    List<String> resultImageUrls,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       clipBehavior: Clip.antiAlias,
@@ -220,6 +224,8 @@ class HistoryDetailScreen extends StatelessWidget {
                       ],
                     ),
                   ),
+                  const SizedBox(width: 6),
+                  _buildResultImageButton(context, resultImageUrls),
                 ],
               ),
               const SizedBox(height: 8),
@@ -279,6 +285,43 @@ class HistoryDetailScreen extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildResultImageButton(
+    BuildContext context,
+    List<String> resultImageUrls,
+  ) {
+    return TextButton.icon(
+      onPressed: () {
+        if (resultImageUrls.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(tr('analysis_result.result_image_not_found')),
+            ),
+          );
+          return;
+        }
+        _showFullImage(context, resultImageUrls.first);
+      },
+      style: TextButton.styleFrom(
+        backgroundColor: const Color(0xFFDFC7A2).withValues(alpha: 0.92),
+        foregroundColor: const Color(0xFF5A3A23),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        minimumSize: const Size(0, 0),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+      ),
+      icon: const Icon(Icons.photo_library_outlined, size: 14),
+      label: Text(
+        tr('analysis_result.show_result_image'),
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          fontFamily: 'Noto Serif KR',
+          fontFamilyFallback: ['Nanum Myeongjo', 'serif'],
+        ),
       ),
     );
   }
@@ -565,6 +608,7 @@ class HistoryDetailScreen extends StatelessWidget {
     final fallbackCount = historyItem.items
         .where((item) => item.isConservativeFallback)
         .length;
+    final previewImageUrls = historyItem.previewImageUrls;
     final dateStr =
         '${historyItem.createdAt.year}.${historyItem.createdAt.month.toString().padLeft(2, '0')}.${historyItem.createdAt.day.toString().padLeft(2, '0')} ${historyItem.createdAt.hour.toString().padLeft(2, '0')}:${historyItem.createdAt.minute.toString().padLeft(2, '0')}';
 
@@ -616,7 +660,7 @@ class HistoryDetailScreen extends StatelessWidget {
                 ),
               ),
               centerTitle: true,
-              flexibleSpace: historyItem.imageUrls.isNotEmpty
+              flexibleSpace: previewImageUrls.isNotEmpty
                   ? FlexibleSpaceBar(
                       background: Padding(
                         padding: EdgeInsets.only(
@@ -629,15 +673,13 @@ class HistoryDetailScreen extends StatelessWidget {
                           bottom: 6,
                         ),
                         child: GestureDetector(
-                          onTap: () => _showFullImage(
-                            context,
-                            historyItem.imageUrls.first,
-                          ),
+                          onTap: () =>
+                              _showFullImage(context, previewImageUrls.first),
                           child: Stack(
                             fit: StackFit.expand,
                             children: [
                               Image.network(
-                                historyItem.imageUrls.first,
+                                previewImageUrls.first,
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) =>
                                     Container(
@@ -714,7 +756,11 @@ class HistoryDetailScreen extends StatelessWidget {
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
                 sliver: SliverToBoxAdapter(
-                  child: _buildRecommendationCard(recommended),
+                  child: _buildRecommendationCard(
+                    context,
+                    recommended,
+                    historyItem.resultImageUrls,
+                  ),
                 ),
               ),
             SliverPadding(
