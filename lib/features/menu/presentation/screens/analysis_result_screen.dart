@@ -311,34 +311,57 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen> {
   }
 
   Widget _buildResultImageButton(List<String> resultImageUrls) {
-    return TextButton.icon(
-      onPressed: () {
-        if (resultImageUrls.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(tr('analysis_result.result_image_not_found')),
-            ),
-          );
-          return;
-        }
-        _showFullImage(context, resultImageUrls.first);
-      },
-      style: TextButton.styleFrom(
-        backgroundColor: const Color(0xFFDFC7A2).withValues(alpha: 0.92),
-        foregroundColor: const Color(0xFF5A3A23),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        minimumSize: const Size(0, 0),
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFF2E2C8), Color(0xFFE0C5A0)],
+        ),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: const Color(0xFFBE9A6D).withValues(alpha: 0.7),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF3B2415).withValues(alpha: 0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
-      icon: const Icon(Icons.photo_library_outlined, size: 14),
-      label: Text(
-        tr('analysis_result.show_result_image'),
-        style: const TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          fontFamily: 'Noto Serif KR',
-          fontFamilyFallback: ['Nanum Myeongjo', 'serif'],
+      child: TextButton.icon(
+        onPressed: () {
+          if (resultImageUrls.isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(tr('analysis_result.result_image_not_found')),
+              ),
+            );
+            return;
+          }
+          _showFullImage(context, resultImageUrls.first);
+        },
+        style: TextButton.styleFrom(
+          foregroundColor: const Color(0xFF4F311C),
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
+          minimumSize: const Size(0, 30),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(999),
+          ),
+        ),
+        icon: const Icon(Icons.image_search_rounded, size: 14),
+        label: Text(
+          tr('analysis_result.title'),
+          style: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w800,
+            fontFamily: 'Noto Serif KR',
+            fontFamilyFallback: ['Nanum Myeongjo', 'serif'],
+          ),
         ),
       ),
     );

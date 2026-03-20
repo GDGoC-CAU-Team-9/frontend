@@ -453,6 +453,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   void _showLanguageSelectionBottomSheet(BuildContext context) {
     final List<Map<String, String>> languages = AppConstants.supportedLanguages;
+    const selectableLanguageCodes = {'ko', 'en', 'es'};
 
     showModalBottomSheet(
       context: context,
@@ -499,69 +500,92 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           Divider(color: Colors.grey.shade300, height: 1),
                       itemBuilder: (context, index) {
                         final lang = languages[index];
-                        final isSelected =
-                            context.locale.languageCode == lang['code'];
+                        final code = lang['code']!;
+                        final isEnabled = selectableLanguageCodes.contains(
+                          code,
+                        );
+                        final isSelected = context.locale.languageCode == code;
 
                         return ListTile(
+                          enabled: isEnabled,
                           leading: Text(
                             lang['icon']!,
-                            style: const TextStyle(fontSize: 24),
+                            style: TextStyle(
+                              fontSize: 24,
+                              color: isEnabled
+                                  ? Colors.black87
+                                  : const Color(0xFF4F5A59),
+                            ),
                           ),
                           title: Text(
-                            tr('language.${lang['code']}'),
+                            tr('language.$code'),
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: isSelected
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                              color: isSelected ? Colors.teal : Colors.black87,
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
+                              color: !isEnabled
+                                  ? const Color(0xFF556160)
+                                  : (isSelected ? Colors.teal : Colors.black87),
                             ),
                           ),
-                          trailing: isSelected
+                          trailing: isSelected && isEnabled
                               ? const Icon(
                                   Icons.check_circle,
                                   color: Colors.teal,
                                 )
+                              : !isEnabled
+                              ? const Icon(
+                                  Icons.remove_circle_outline_rounded,
+                                  color: Color(0xFF667271),
+                                  size: 20,
+                                )
                               : null,
-                          onTap: () async {
-                            Navigator.pop(context);
-                            if (!isSelected) {
-                              try {
-                                await ref
-                                    .read(authRepositoryProvider)
-                                    .updateLanguage(lang['code']!);
+                          onTap: !isEnabled
+                              ? null
+                              : () async {
+                                  Navigator.pop(context);
+                                  if (!isSelected) {
+                                    try {
+                                      await ref
+                                          .read(authRepositoryProvider)
+                                          .updateLanguage(code);
 
-                                if (!mounted) return;
+                                      if (!mounted) return;
 
-                                await context.setLocale(Locale(lang['code']!));
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        tr(
-                                          'language_changed',
-                                          namedArgs: {
-                                            'lang': tr(
-                                              'language.${lang['code']}',
+                                      await context.setLocale(Locale(code));
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              tr(
+                                                'language_changed',
+                                                namedArgs: {
+                                                  'lang': tr('language.$code'),
+                                                },
+                                              ),
                                             ),
-                                          },
+                                          ),
+                                        );
+                                      }
+                                    } catch (e) {
+                                      if (!mounted) return;
+                                      final message = toUserMessage(
+                                        e,
+                                        fallback: tr(
+                                          'home.language_change_failed',
                                         ),
-                                      ),
-                                    ),
-                                  );
-                                }
-                              } catch (e) {
-                                if (!mounted) return;
-                                final message = toUserMessage(
-                                  e,
-                                  fallback: tr('home.language_change_failed'),
-                                );
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text(message)),
-                                );
-                              }
-                            }
-                          },
+                                      );
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(content: Text(message)),
+                                      );
+                                    }
+                                  }
+                                },
                         );
                       },
                     ),

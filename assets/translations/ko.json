@@ -201,7 +201,7 @@
     "step_ingredient": "재료 성분 분석",
     "step_risk": "알러지 위험 진단",
     "failed_title": "메뉴 분석에 실패했습니다.",
-    "back_to_previous": "이전 화면으로"
+    "back_to_previous": "이전"
   },
   "camera": {
     "no_cameras_found": "사용 가능한 카메라를 찾을 수 없습니다.",
