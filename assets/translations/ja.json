@@ -97,6 +97,8 @@
     "image_pick_failed_with_message": "画像の選択に失敗しました: {message}",
     "source_camera": "写真を撮る",
     "source_gallery": "ギャラリーから選択",
+    "menu_lang_sheet_title": "メニュー言語を選択",
+    "menu_lang_sheet_desc": "メニュー表で使われている言語を選んでください。",
     "target_sheet_title": "どのプロフィールで分析しますか？",
     "target_personal_title": "自分のプロフィールで分析",
     "target_personal_desc": "自分の忌避食材/アレルギーのみを使用",

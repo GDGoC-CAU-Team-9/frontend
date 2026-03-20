@@ -17,13 +17,18 @@ class MenuAnalysisNotifier extends StateNotifier<AsyncValue<SearchResult>> {
   MenuAnalysisNotifier(this._repository)
     : super(AsyncValue.data(SearchResult(items: [])));
 
-  Future<void> analyzeMenu(XFile file, {int? teamMemberId}) async {
+  Future<void> analyzeMenu(
+    XFile file, {
+    int? teamMemberId,
+    required String menuLang,
+  }) async {
     state = const AsyncValue.loading();
     try {
       // Backend automatically fetches user's avoid items
       final result = await _repository.uploadMenuImage(
         file,
         teamMemberId: teamMemberId,
+        menuLang: menuLang,
       );
       state = AsyncValue.data(result);
     } catch (e, stack) {

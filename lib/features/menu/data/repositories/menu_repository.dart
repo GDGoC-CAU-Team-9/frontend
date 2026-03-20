@@ -114,7 +114,11 @@ class MenuRepository {
 
   /// Upload image to S3 and analyze via backend (POST /restaurant/search)
   /// The backend automatically fetches user's avoid items and saves history.
-  Future<SearchResult> uploadMenuImage(XFile file, {int? teamMemberId}) async {
+  Future<SearchResult> uploadMenuImage(
+    XFile file, {
+    int? teamMemberId,
+    required String menuLang,
+  }) async {
     try {
       // 1. Normalize Image (Resize & Convert to JPEG)
       developer.log(
@@ -201,6 +205,7 @@ class MenuRepository {
 
       final Map<String, dynamic> requestData = {
         'ids': [fileId],
+        'menuLang': menuLang,
       };
       if (teamMemberId != null) {
         requestData['teamMemberId'] = teamMemberId;

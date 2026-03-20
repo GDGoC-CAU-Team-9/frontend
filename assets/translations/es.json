@@ -97,6 +97,8 @@
     "image_pick_failed_with_message": "Error al seleccionar la imagen: {message}",
     "source_camera": "Tomar foto",
     "source_gallery": "Elegir de la galería",
+    "menu_lang_sheet_title": "Seleccionar idioma del menú",
+    "menu_lang_sheet_desc": "Elige el idioma usado en la carta.",
     "target_sheet_title": "¿Con qué perfil quieres analizar?",
     "target_personal_title": "Analizar para mí",
     "target_personal_desc": "Usar solo mis ingredientes a evitar/alergias",

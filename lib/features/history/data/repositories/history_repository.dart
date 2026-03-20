@@ -28,7 +28,7 @@ class HistoryItem {
   });
 
   List<String> get previewImageUrls =>
-      resultImageUrls.isNotEmpty ? resultImageUrls : imageUrls;
+      imageUrls.isNotEmpty ? imageUrls : resultImageUrls;
 
   static List<String> _parseStringList(dynamic raw) {
     if (raw is List) {

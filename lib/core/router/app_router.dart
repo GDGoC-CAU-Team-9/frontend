@@ -83,11 +83,13 @@ final routerProvider = Provider<GoRouter>((ref) {
           final extra = state.extra;
           XFile? imageFile;
           int? teamMemberId;
+          String? menuLang;
 
           if (extra is Map) {
             imageFile =
                 extra['imageFile'] as XFile? ?? extra['image'] as XFile?;
             teamMemberId = extra['teamMemberId'] as int?;
+            menuLang = extra['menuLang'] as String?;
           } else if (extra is XFile) {
             // Backward compatibility: previous flow passed XFile directly
             imageFile = extra;
@@ -97,9 +99,15 @@ final routerProvider = Provider<GoRouter>((ref) {
             return const HomeScreen();
           }
 
+          final localeCode = Localizations.localeOf(context).languageCode;
+          final resolvedMenuLang = (menuLang == null || menuLang.trim().isEmpty)
+              ? localeCode
+              : menuLang.trim();
+
           return AnalysisLoadingScreen(
             imageFile: imageFile,
             teamMemberId: teamMemberId,
+            menuLang: resolvedMenuLang,
           );
         },
       ),
