@@ -701,6 +701,9 @@ class _AnalysisResultScreenState extends ConsumerState<AnalysisResultScreen> {
                     pinned: true,
                     backgroundColor: Colors.transparent,
                     elevation: 0,
+                    scrolledUnderElevation: 0,
+                    surfaceTintColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
                     leading: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Container(

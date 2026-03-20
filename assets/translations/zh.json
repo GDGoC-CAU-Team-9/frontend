@@ -97,6 +97,8 @@
     "image_pick_failed_with_message": "选择图片失败：{message}",
     "source_camera": "拍照",
     "source_gallery": "从相册选择",
+    "menu_lang_sheet_title": "选择菜单语言",
+    "menu_lang_sheet_desc": "请选择菜单图片使用的语言。",
     "target_sheet_title": "要基于谁的资料进行分析？",
     "target_personal_title": "为我分析",
     "target_personal_desc": "仅使用我的忌口食材/过敏信息",

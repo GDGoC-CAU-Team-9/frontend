@@ -55,10 +55,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     try {
       final XFile? image = await _picker.pickImage(source: source);
       if (image != null) {
+        final menuLang = await _showMenuLanguageSelectionSheet(context);
+        if (!mounted || menuLang == null) return;
+
         if (mounted) {
           await context.push(
             '/analysis-loading',
-            extra: {'imageFile': image, 'teamMemberId': teamMemberId},
+            extra: {
+              'imageFile': image,
+              'teamMemberId': teamMemberId,
+              'menuLang': menuLang,
+            },
           );
           // Refresh history when returning from analysis
           if (mounted) {
@@ -126,6 +133,120 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
               const SizedBox(height: 20),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<String?> _showMenuLanguageSelectionSheet(BuildContext context) {
+    final List<Map<String, String>> languages = AppConstants.supportedLanguages;
+    const selectableLanguageCodes = {'ko', 'en', 'es'};
+    final currentCode = context.locale.languageCode;
+
+    return showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (sheetContext) => BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: const BoxDecoration(color: Colors.transparent),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    tr('home.menu_lang_sheet_title'),
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    tr('home.menu_lang_sheet_desc'),
+                    style: const TextStyle(fontSize: 13, color: Colors.white70),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  Container(
+                    decoration: AppDesign.glassDecoration.copyWith(
+                      color: Colors.white.withOpacity(0.6),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: languages.length,
+                      separatorBuilder: (context, index) =>
+                          Divider(color: Colors.grey.shade300, height: 1),
+                      itemBuilder: (context, index) {
+                        final lang = languages[index];
+                        final code = lang['code']!;
+                        final isEnabled = selectableLanguageCodes.contains(
+                          code,
+                        );
+                        final isCurrent = currentCode == code;
+
+                        return ListTile(
+                          enabled: isEnabled,
+                          leading: Text(
+                            lang['icon']!,
+                            style: TextStyle(
+                              fontSize: 24,
+                              color: isEnabled
+                                  ? Colors.black87
+                                  : const Color(0xFF4F5A59),
+                            ),
+                          ),
+                          title: Text(
+                            tr('language.$code'),
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: isCurrent
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
+                              color: !isEnabled
+                                  ? const Color(0xFF556160)
+                                  : (isCurrent ? Colors.teal : Colors.black87),
+                            ),
+                          ),
+                          trailing: isCurrent && isEnabled
+                              ? const Icon(
+                                  Icons.check_circle,
+                                  color: Colors.teal,
+                                )
+                              : !isEnabled
+                              ? const Icon(
+                                  Icons.remove_circle_outline_rounded,
+                                  color: Color(0xFF667271),
+                                  size: 20,
+                                )
+                              : null,
+                          onTap: !isEnabled
+                              ? null
+                              : () => Navigator.pop(sheetContext, code),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
           ),
         ),
       ),

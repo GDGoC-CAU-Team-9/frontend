@@ -97,6 +97,8 @@
     "image_pick_failed_with_message": "Failed to pick image: {message}",
     "source_camera": "Take a photo",
     "source_gallery": "Choose from gallery",
+    "menu_lang_sheet_title": "Select Menu Language",
+    "menu_lang_sheet_desc": "Choose the language used on the menu board.",
     "target_sheet_title": "Whose profile should we analyze by?",
     "target_personal_title": "Analyze for me",
     "target_personal_desc": "Use only my avoid items/allergies",
