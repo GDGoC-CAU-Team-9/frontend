@@ -1,0 +1,2 @@
+"NSCameraUsageDescription" = "메뉴판 사진을 촬영해 기피 재료를 분석하기 위해 카메라 접근 권한이 필요합니다.";
+"NSPhotoLibraryUsageDescription" = "갤러리에서 메뉴판 사진을 선택해 기피 재료를 분석하기 위해 사진 접근 권한이 필요합니다.";

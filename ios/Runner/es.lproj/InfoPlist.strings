@@ -1,0 +1,2 @@
+"NSCameraUsageDescription" = "Se necesita acceso a la camara para tomar fotos del menu y analizar los ingredientes que deseas evitar.";
+"NSPhotoLibraryUsageDescription" = "Se necesita acceso a Fotos para seleccionar imagenes del menu y analizar los ingredientes que deseas evitar.";

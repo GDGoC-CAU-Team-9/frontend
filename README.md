@@ -45,8 +45,12 @@ flutter pub get
 프로젝트 루트의 `.env`에 API 주소를 설정합니다.
 
 ```env
-BASE_URL=http://localhost:8080
+BASE_URL=https://api.example.com
 ```
+
+개발/배포용 예시는 아래 파일을 참고하세요.
+- `.env.dev.example`
+- `.env.release.example`
 
 ### 3) 앱 실행
 ```bash
@@ -57,6 +61,7 @@ flutter run
 ```bash
 flutter run -d chrome --web-browser-flag "--disable-web-security"
 ```
+주의: 이 옵션은 개발용 임시 우회입니다. 배포/실사용 환경에서는 사용하지 마세요.
 
 ## 빌드
 ### Android APK
@@ -65,6 +70,27 @@ flutter build apk --release
 ```
 
 주의: 로컬에 Android SDK가 설치되어 있고 `ANDROID_HOME` 또는 `ANDROID_SDK_ROOT`가 설정되어 있어야 합니다.
+
+### iOS Release (App Store 업로드 전 검증)
+1) 사전 점검
+```bash
+bash scripts/ios_release_preflight.sh
+```
+
+다른 env 파일로 점검하려면:
+```bash
+ENV_FILE=.env.release.example bash scripts/ios_release_preflight.sh
+```
+
+2) 코드사인 없이 릴리즈 빌드 확인
+```bash
+flutter build ios --release --no-codesign
+```
+
+3) Xcode에서 Archive/Upload 진행
+```bash
+open ios/Runner.xcworkspace
+```
 
 ## 프로젝트 구조
 ```text

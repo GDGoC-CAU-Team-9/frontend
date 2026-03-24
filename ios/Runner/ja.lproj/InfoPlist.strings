@@ -1,0 +1,2 @@
+"NSCameraUsageDescription" = "避けたい食材を分析するため、メニュー写真を撮影する際にカメラへのアクセスが必要です。";
+"NSPhotoLibraryUsageDescription" = "避けたい食材を分析するため、メニュー写真を選択する際に写真ライブラリへのアクセスが必要です。";
