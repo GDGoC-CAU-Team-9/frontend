@@ -100,6 +100,7 @@
     "menu_lang_sheet_title": "选择菜单语言",
     "menu_lang_sheet_desc": "请选择菜单图片使用的语言。",
     "target_sheet_title": "要基于谁的资料进行分析？",
+    "analysis_attempt_badge": "个人4 · 全体100",
     "target_personal_title": "为我分析",
     "target_personal_desc": "仅使用我的忌口食材/过敏信息",
     "target_team_title": "选择一个团队一起分析",

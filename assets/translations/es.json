@@ -100,6 +100,7 @@
     "menu_lang_sheet_title": "Seleccionar idioma del menú",
     "menu_lang_sheet_desc": "Elige el idioma usado en la carta.",
     "target_sheet_title": "¿Con qué perfil quieres analizar?",
+    "analysis_attempt_badge": "4/usuario · 100/t",
     "target_personal_title": "Analizar para mí",
     "target_personal_desc": "Usar solo mis ingredientes a evitar/alergias",
     "target_team_title": "Selecciona un equipo para analizar juntos",
