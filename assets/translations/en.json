@@ -100,6 +100,7 @@
     "menu_lang_sheet_title": "Select Menu Language",
     "menu_lang_sheet_desc": "Choose the language used on the menu board.",
     "target_sheet_title": "Whose profile should we analyze by?",
+    "analysis_attempt_badge": "4/user · 100/all",
     "target_personal_title": "Analyze for me",
     "target_personal_desc": "Use only my avoid items/allergies",
     "target_team_title": "Select a team to analyze together",

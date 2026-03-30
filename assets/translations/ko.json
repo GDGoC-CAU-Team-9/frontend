@@ -100,6 +100,7 @@
     "menu_lang_sheet_title": "메뉴판 언어 선택",
     "menu_lang_sheet_desc": "분석할 메뉴판의 언어를 선택해주세요.",
     "target_sheet_title": "누구 기준으로 분석할까요?",
+    "analysis_attempt_badge": "개인4·전체100",
     "target_personal_title": "나만을 위한 분석",
     "target_personal_desc": "내 기피 재료/알러지만 반영",
     "target_team_title": "팀을 선택해 같이 분석하기",

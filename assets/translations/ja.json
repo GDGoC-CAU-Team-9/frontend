@@ -100,6 +100,7 @@
     "menu_lang_sheet_title": "メニュー言語を選択",
     "menu_lang_sheet_desc": "メニュー表で使われている言語を選んでください。",
     "target_sheet_title": "どのプロフィールで分析しますか？",
+    "analysis_attempt_badge": "個人4・全体100",
     "target_personal_title": "自分のプロフィールで分析",
     "target_personal_desc": "自分の忌避食材/アレルギーのみを使用",
     "target_team_title": "一緒に分析するチームを選択",
