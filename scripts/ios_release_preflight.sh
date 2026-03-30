@@ -84,14 +84,13 @@ if [[ -f "$PUBSPEC_FILE" ]]; then
   fi
 fi
 
-if grep -q 'LogInterceptor(' "$PROJECT_ROOT/lib/core/network/dio_client.dart"; then
-  if grep -q 'if (kDebugMode)' "$PROJECT_ROOT/lib/core/network/dio_client.dart"; then
-    pass "Network logging is guarded by kDebugMode"
-  else
-    fail "LogInterceptor exists but is not guarded by kDebugMode"
-  fi
-else
+DIO_CLIENT_FILE="$PROJECT_ROOT/lib/core/network/dio_client.dart"
+if ! grep -q 'LogInterceptor' "$DIO_CLIENT_FILE"; then
   warn "LogInterceptor not found (this may be intentional)"
+elif sed '/if (kDebugMode)/,/}/d' "$DIO_CLIENT_FILE" | grep -q 'LogInterceptor'; then
+  fail "LogInterceptor exists but is not guarded by kDebugMode"
+else
+  pass "Network logging is guarded by kDebugMode"
 fi
 
 if [[ "$ERROR_COUNT" -gt 0 ]]; then
