@@ -14,11 +14,15 @@ class AuthRepository {
   final _storage = const FlutterSecureStorage();
   static const _tokenKey = 'accessToken';
   static const _emailKey = 'userEmail';
+  static const _loginRequestDelay = Duration(seconds: 1);
+  static const _signUpRequestDelay = Duration(seconds: 2);
 
   AuthRepository(this._dio);
 
   Future<void> login({required String email, required String password}) async {
     try {
+      await Future.delayed(_loginRequestDelay);
+
       final response = await _dio.post(
         '/auth/login',
         data: {'email': email, 'password': password},
@@ -111,6 +115,8 @@ class AuthRepository {
     required String language,
   }) async {
     try {
+      await Future.delayed(_signUpRequestDelay);
+
       final response = await _dio.post(
         '/auth/join',
         data: {'email': email, 'password': password, 'language': language},
